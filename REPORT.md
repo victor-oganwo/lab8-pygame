@@ -1,14 +1,20 @@
-# Project Report: AI-Assisted Development
+## Feature: fleeing behavior
 
-## 1. Initial Approach
-* **Understanding:** Briefly describe your strategy for tackling the requirements.
-* **Assumptions:** What did you assume about the project before starting?
+Goal:
+Make smaller squares flee from bigger nearby squares.
 
-## 2. Prompting & AI Interaction
-* **Successes:** What types of prompts or context worked best for you?
-* **Failures:** Describe specific instances where CoPilot failed (hallucinations, over-engineering, or logical errors).
-* **Analysis:** Why do you think these failures happened, and how did they impact your progress?
+Idea:
+For each square, I check nearby squares.
+If another square is bigger, I treat it as a threat.
+I compute the direction from the small square to the bigger one, then reverse that direction to get a flee vector.
 
-## 3. Key Learnings
-* **Technical Skills:** What CS concepts or tools did you discover or master during this project?
-* **AI Workflow:** How will you change your use of AI tools in your next project?
+Design choice:
+I combine flee direction with the square’s current movement instead of replacing movement completely.
+This keeps some randomness and makes the motion look more natural.
+
+Time-based animation:
+I use delta_time so movement is based on pixels per second rather than pixels per frame.
+
+Questions:
+Should the square flee from only the nearest bigger square, or from all nearby bigger squares combined?
+Should flee strength depend on distance?

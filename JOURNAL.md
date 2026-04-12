@@ -139,3 +139,13 @@ stubs functions with TODOs that explain what to do.
 - **Hook Version**: 1.02
 - **Date**: 13-04-2026 01:41
 - **Prompt**: Help me review the main.py and add comments
+### **New Interaction**
+- **Agent Version**: 2.2
+- **Date**: 13-04-2026 01:43
+- **User**: victor.oganwo@epita.fr
+- **Prompt**: Help me review the main.py and add comments
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: GPT-5.3-Codex
+- **Socratic Mode**: ON
+- **Changes Made**: Reviewed main.py, found no blocking errors, and added concise inline comments explaining normalization, flee vector composition, speed clamping, delta_time integration, and wall collision handling.
+- **Context and Reasons for Changes**: User requested code review plus comments; comments were added only where logic is non-obvious to improve readability without changing behavior.
