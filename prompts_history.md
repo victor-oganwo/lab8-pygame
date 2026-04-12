@@ -17,3 +17,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 12-04-2026 23:14
 - **Prompt**: okay ive done the to dos check my filr to see if there was any mistake
 
+### 12-04-2026 23:38
+- **Prompt**: okay ive done some adjustments check it
+
