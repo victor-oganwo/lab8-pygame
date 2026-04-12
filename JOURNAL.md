@@ -43,3 +43,22 @@
 - **Hook Version**: 1.02
 - **Date**: 07-04-2026 14:49
 - **Prompt**: Help me implement a simple pygame app that shows 10 squares moving randomly on the screen. Stay in Socratic mode. Only give me a skeleton application with stub functions and TODOs. Do not fully implement everything. Explain which function I should start with first.
+### **New Interaction**
+- **Agent Version**: 2.2
+- **Date**: 07-04-2026 14:50
+- **User**: victor.oganwo@epita.fr
+- **Prompt**: Help me implement a simple pygame app that shows 10 squares moving randomly on the screen.
+Stay in Socratic mode.
+Only give me a skeleton application with stub functions and TODOs.
+Do not fully implement everything.
+Explain which function I should start with first.
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: GPT-5.3-Codex
+- **Socratic Mode**: ON
+- **Changes Made**: Added a pygame skeleton in main.py with typed constants, Square dataclass, and stub functions containing TODO steps; did not fully implement behavior.
+- **Context and Reasons for Changes**: User requested a guided skeleton-only setup for learning, so implementation details were intentionally left as TODOs for incremental development.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 12-04-2026 22:56
+- **Prompt**: Help me implement a simple pygame application that displays 10 squares moving randomly on the screen. Stay in Socratic mode and only provide a skeleton application with stubs functions with TODOs that explain what to do.
