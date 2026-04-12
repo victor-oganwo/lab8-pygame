@@ -62,3 +62,20 @@ Explain which function I should start with first.
 - **Hook Version**: 1.02
 - **Date**: 12-04-2026 22:56
 - **Prompt**: Help me implement a simple pygame application that displays 10 squares moving randomly on the screen. Stay in Socratic mode and only provide a skeleton application with stubs functions with TODOs that explain what to do.
+### **New Interaction**
+- **Agent Version**: 2.2
+- **Date**: 12-04-2026 22:57
+- **User**: victor.oganwo@epita.fr
+- **Prompt**: Help me implement a simple pygame application that displays 10 squares
+moving randomly on the screen. Stay in Socratic mode and only provide a skeleton application with
+stubs functions with TODOs that explain what to do.
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: GPT-5.3-Codex
+- **Socratic Mode**: ON
+- **Changes Made**: Replaced full implementation in main.py with a skeleton-only structure using stub functions and detailed TODO guidance; ensured square count is 10.
+- **Context and Reasons for Changes**: User requested Socratic skeleton guidance without full implementation, so behavior code was intentionally removed and replaced with learning-oriented TODO steps.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 12-04-2026 23:14
+- **Prompt**: okay ive done the to dos check my filr to see if there was any mistake
