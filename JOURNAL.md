@@ -124,3 +124,18 @@ stubs functions with TODOs that explain what to do.
 - **Hook Version**: 1.02
 - **Date**: 13-04-2026 01:40
 - **Prompt**: HELP me document the code
+### **New Interaction**
+- **Agent Version**: 2.2
+- **Date**: 13-04-2026 01:40
+- **User**: victor.oganwo@epita.fr
+- **Prompt**: HELP me document the code
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: GPT-5.3-Codex
+- **Socratic Mode**: ON
+- **Changes Made**: Added module/class/function docstrings to main.py to document architecture, parameters, return values, and flee-behavior algorithm flow.
+- **Context and Reasons for Changes**: User asked for code documentation, so in-code documentation was improved without changing runtime behavior.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 13-04-2026 01:41
+- **Prompt**: Help me review the main.py and add comments
