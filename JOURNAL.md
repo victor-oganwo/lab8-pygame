@@ -149,3 +149,8 @@ stubs functions with TODOs that explain what to do.
 - **Socratic Mode**: ON
 - **Changes Made**: Reviewed main.py, found no blocking errors, and added concise inline comments explaining normalization, flee vector composition, speed clamping, delta_time integration, and wall collision handling.
 - **Context and Reasons for Changes**: User requested code review plus comments; comments were added only where logic is non-obvious to improve readability without changing behavior.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 17-04-2026 10:12
+- **Prompt**: Activate the journal logger
