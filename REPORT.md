@@ -18,3 +18,16 @@ I use delta_time so movement is based on pixels per second rather than pixels pe
 Questions:
 Should the square flee from only the nearest bigger square, or from all nearby bigger squares combined?
 Should flee strength depend on distance?
+
+
+## Feature: life span and rebirth
+
+Idea:
+Each square should live for a random amount of time.
+I added two attributes: age and lifespan.
+At every update, age increases by delta_time.
+When age becomes greater than or equal to lifespan, the square dies and is replaced by a newly created square.
+
+Design choice:
+I used a helper function create_random_square() so the same logic works for both initial creation and rebirth.
+I changed update_squares() so it returns a new list of squares, which makes replacing dead squares easier and safer.
