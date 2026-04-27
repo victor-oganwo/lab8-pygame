@@ -3,6 +3,7 @@
 Overview:
 - Squares move inside a bounded window.
 - Bigger nearby squares are treated as threats.
+- Bigger square should chase smaller ones, while smaller squares try to flee from bigger ones.
 - Smaller squares adjust velocity to move away from threats.
 - Movement uses delta time to keep speed stable across FPS.
 """
@@ -140,6 +141,68 @@ def apply_flee_behavior(
         square.vy *= scale
 
 
+def find_smaller_nearby_squares(
+    square: Square,
+    squares: List[Square],
+    chase_radius: float,
+) -> List[Square]:
+    smaller_squares = []
+
+    for other in squares:
+        if other is square:
+            continue
+        if other.size >= square.size:
+            continue
+        if distance_between(square, other) <= chase_radius:
+            smaller_squares.append(other)
+
+    return smaller_squares
+
+
+def chase(
+    square: Square,
+    smaller_squares: List[Square],
+    chase_strength: float,
+) -> None:
+    if not smaller_squares:
+        return
+
+    chase_x = 0.0
+    chase_y = 0.0
+    square_center_x = square.x + square.size / 2
+    square_center_y = square.y + square.size / 2
+
+    for other in smaller_squares:
+        other_center_x = other.x + other.size / 2
+        other_center_y = other.y + other.size / 2
+
+        dx = other_center_x - square_center_x
+        dy = other_center_y - square_center_y
+        distance = math.hypot(dx, dy)
+
+        if distance == 0:
+            continue
+
+        chase_x += dx / distance
+        chase_y += dy / distance
+
+    length = math.hypot(chase_x, chase_y)
+    if length == 0:
+        return
+
+    chase_x /= length
+    chase_y /= length
+
+    square.vx += chase_x * chase_strength
+    square.vy += chase_y * chase_strength
+
+    speed = math.hypot(square.vx, square.vy)
+    if speed > square.max_speed:
+        scale = square.max_speed / speed
+        square.vx *= scale
+        square.vy *= scale
+
+
 def handle_events() -> bool:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -155,6 +218,8 @@ def update_squares(
 ) -> List[Square]:
     flee_radius = 150.0
     flee_strength = 80.0
+    chase_radius = 200.0
+    chase_strength = 60.0
     updated_squares: List[Square] = []
 
     for square in squares:
@@ -166,6 +231,8 @@ def update_squares(
 
         bigger_squares = find_bigger_nearby_squares(square, squares, flee_radius)
         apply_flee_behavior(square, bigger_squares, flee_strength * delta_time)
+        smaller_squares = find_smaller_nearby_squares(square, squares, chase_radius)
+        chase(square, smaller_squares, chase_strength * delta_time)
 
         square.x += square.vx * delta_time
         square.y += square.vy * delta_time
@@ -223,7 +290,6 @@ def run() -> None:
             pygame.display.flip()
     finally:
         pygame.quit()
-
 
 if __name__ == "__main__":
     run()

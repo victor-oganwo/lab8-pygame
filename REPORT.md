@@ -31,3 +31,11 @@ When age becomes greater than or equal to lifespan, the square dies and is repla
 Design choice:
 I used a helper function create_random_square() so the same logic works for both initial creation and rebirth.
 I changed update_squares() so it returns a new list of squares, which makes replacing dead squares easier and safer.
+
+## CHASING
+
+ Idea:
+ Each big square should chase down a small square.
+ Im thinking of adding an attribute: chase
+ For every small square it should flee away from a big square 
+ 
