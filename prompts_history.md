@@ -62,3 +62,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 03-05-2026 21:40
 - **Prompt**: Run the pygame project and fix every syntax/runtime errors.
 
+### 03-05-2026 21:50
+- **Prompt**: Regenerate the code explorer site for this project.
+
