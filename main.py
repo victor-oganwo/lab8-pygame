@@ -17,11 +17,16 @@ from typing import List
 
 import pygame
 
-
 SCREEN_WIDTH: int = 800
 SCREEN_HEIGHT: int = 600
 FPS: int = 60
 SQUARE_COUNT: int = 20
+
+# Behavior constants: control how far squares detect neighbors and how strongly they react.
+FLEE_RADIUS: float = 150.0
+FLEE_STRENGTH: float = 80.0
+CHASE_RADIUS: float = 200.0
+CHASE_STRENGTH: float = 60.0
 
 MIN_SQUARE_SIZE: int = 10
 MAX_SQUARE_SIZE: int = 40
@@ -84,22 +89,54 @@ def create_squares(count: int) -> List[Square]:
     return [create_random_square() for _ in range(count)]
 
 
+def filter_nearby_squares(
+    square: Square,
+    squares: List[Square],
+    radius: float,
+    size_compare,
+) -> List[Square]:
+    """Helper to reduce duplicate neighbor-scanning logic.
+
+    Returns nearby squares that match the size_compare rule (a function that takes
+    other.size and square.size and returns True if the square matches the filter).
+    """
+    nearby = []
+    for other in squares:
+        if other is square:
+            continue
+        if not size_compare(other.size, square.size):
+            continue
+        if distance_between(square, other) <= radius:
+            nearby.append(other)
+    return nearby
+
+
 def find_bigger_nearby_squares(
     square: Square,
     squares: List[Square],
     flee_radius: float,
 ) -> List[Square]:
-    bigger_squares = []
+    # Use shared helper with a rule: 'bigger than current square'.
+    return filter_nearby_squares(
+        square,
+        squares,
+        flee_radius,
+        lambda other_size, square_size: other_size > square_size,
+    )
 
-    for other in squares:
-        if other is square:
-            continue
-        if other.size <= square.size:
-            continue
-        if distance_between(square, other) <= flee_radius:
-            bigger_squares.append(other)
 
-    return bigger_squares
+def find_smaller_nearby_squares(
+    square: Square,
+    squares: List[Square],
+    chase_radius: float,
+) -> List[Square]:
+    # Use shared helper with a rule: 'smaller than current square'.
+    return filter_nearby_squares(
+        square,
+        squares,
+        chase_radius,
+        lambda other_size, square_size: other_size < square_size,
+    )
 
 
 def apply_flee_behavior(
@@ -110,6 +147,7 @@ def apply_flee_behavior(
     if not bigger_squares:
         return
 
+    # Combine directions away from all threats, then normalize to unit vector.
     away_x = 0.0
     away_y = 0.0
 
@@ -120,7 +158,7 @@ def apply_flee_behavior(
 
         if distance == 0:
             continue
-
+        # Subtract direction toward threat to get direction away from it.
         away_x -= dx / distance
         away_y -= dy / distance
 
@@ -128,38 +166,28 @@ def apply_flee_behavior(
     if length == 0:
         return
 
+    # Normalize: scale vector to unit length so strength applies consistently.
     away_x /= length
     away_y /= length
 
     square.vx += away_x * flee_strength
     square.vy += away_y * flee_strength
 
+    clamp_speed(square)
+
+
+def clamp_speed(square: Square) -> None:
+    """Helper to enforce speed limit after steering forces are applied.
+
+    Prevents squares from accelerating too much and ensures consistent max speed across all squares.
+    """
     speed = math.hypot(square.vx, square.vy)
     if speed > square.max_speed:
         scale = square.max_speed / speed
         square.vx *= scale
         square.vy *= scale
 
-
-def find_smaller_nearby_squares(
-    square: Square,
-    squares: List[Square],
-    chase_radius: float,
-) -> List[Square]:
-    smaller_squares = []
-
-    for other in squares:
-        if other is square:
-            continue
-        if other.size >= square.size:
-            continue
-        if distance_between(square, other) <= chase_radius:
-            smaller_squares.append(other)
-
-    return smaller_squares
-
-
-def chase(
+def apply_chase_behavior(
     square: Square,
     smaller_squares: List[Square],
     chase_strength: float,
@@ -167,8 +195,9 @@ def chase(
     if not smaller_squares:
         return
 
-    chase_x = 0.0
-    chase_y = 0.0
+    # Combine directions toward all targets, then normalize to unit vector.
+    toward_x = 0.0
+    toward_y = 0.0
     square_center_x = square.x + square.size / 2
     square_center_y = square.y + square.size / 2
 
@@ -182,25 +211,22 @@ def chase(
 
         if distance == 0:
             continue
+        # Add direction toward target (normalized by distance).
+        toward_x += dx / distance
+        toward_y += dy / distance
 
-        chase_x += dx / distance
-        chase_y += dy / distance
-
-    length = math.hypot(chase_x, chase_y)
+    length = math.hypot(toward_x, toward_y)
     if length == 0:
         return
 
-    chase_x /= length
-    chase_y /= length
+    # Normalize: scale vector to unit length so strength applies consistently.
+    toward_x /= length
+    toward_y /= length
 
-    square.vx += chase_x * chase_strength
-    square.vy += chase_y * chase_strength
+    square.vx += toward_x * chase_strength
+    square.vy += toward_y * chase_strength
 
-    speed = math.hypot(square.vx, square.vy)
-    if speed > square.max_speed:
-        scale = square.max_speed / speed
-        square.vx *= scale
-        square.vy *= scale
+    clamp_speed(square)
 
 
 def handle_events() -> bool:
@@ -216,27 +242,32 @@ def update_squares(
     height: int,
     delta_time: float,
 ) -> List[Square]:
-    flee_radius = 150.0
-    flee_strength = 80.0
-    chase_radius = 200.0
-    chase_strength = 60.0
+    """Update all squares through one frame cycle: age, behavior, movement, and collision.
+
+    Behavior constants (FLEE_RADIUS, CHASE_RADIUS, etc.) are defined at module level
+    so they are easy to tune without editing this function.
+    """
     updated_squares: List[Square] = []
 
     for square in squares:
+        # Phase 1: Age and check for lifespan expiration.
         square.age += delta_time
-
         if square.age >= square.lifespan:
             updated_squares.append(create_random_square())
             continue
 
-        bigger_squares = find_bigger_nearby_squares(square, squares, flee_radius)
-        apply_flee_behavior(square, bigger_squares, flee_strength * delta_time)
-        smaller_squares = find_smaller_nearby_squares(square, squares, chase_radius)
-        chase(square, smaller_squares, chase_strength * delta_time)
+        # Phase 2: Detect neighbors and apply steering behaviors.
+        bigger_squares = find_bigger_nearby_squares(square, squares, FLEE_RADIUS)
+        apply_flee_behavior(square, bigger_squares, FLEE_STRENGTH * delta_time)
 
+        smaller_squares = find_smaller_nearby_squares(square, squares, CHASE_RADIUS)
+        apply_chase_behavior(square, smaller_squares, CHASE_STRENGTH * delta_time)
+
+        # Phase 3: Integrate position based on velocity and frame time.
         square.x += square.vx * delta_time
         square.y += square.vy * delta_time
 
+        # Phase 4: Handle boundary collisions and bounce off walls.
         if square.x <= 0:
             square.x = 0
             square.vx *= -1
@@ -290,6 +321,7 @@ def run() -> None:
             pygame.display.flip()
     finally:
         pygame.quit()
+
 
 if __name__ == "__main__":
     run()

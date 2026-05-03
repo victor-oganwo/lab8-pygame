@@ -32,10 +32,25 @@ Design choice:
 I used a helper function create_random_square() so the same logic works for both initial creation and rebirth.
 I changed update_squares() so it returns a new list of squares, which makes replacing dead squares easier and safer.
 
-## CHASING
-
- Idea:
- Each big square should chase down a small square.
- Im thinking of adding an attribute: chase
- For every small square it should flee away from a big square 
  
+## Feature: chasing behavior
+
+Goal:
+Make bigger squares chase smaller nearby squares while keeping the fleeing behavior.
+
+Idea:
+For each square, I check nearby squares.
+If another square is smaller, I treat it as prey.
+I compute the direction from the bigger square to the smaller square, then use that direction as a chase vector.
+
+Design choice:
+I kept chasing and fleeing easy to understand.
+Fleeing moves away from bigger squares.
+Chasing moves toward smaller squares.
+
+Time-based animation:
+The chase force is multiplied by delta_time, so the behavior stays stable even if the frame rate changes.
+
+Reflection:
+The first implementation worked, but it repeated some neighbor-scanning logic.
+After the refactoring plan, I moved behavior values into named constants and cleaned the update flow so the code is easier to read and tune.

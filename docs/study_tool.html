@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pygame Project - Interactive Learning Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #7c3aed;
+            --accent-color: #ec4899;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-light: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--primary-color);
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        nav {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        nav button {
+            padding: 0.75rem 1.5rem;
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        nav button:hover,
+        nav button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .card h3 {
+            color: var(--accent-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--secondary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        .highlight {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .success {
+            color: var(--success-color);
+        }
+
+        .warning {
+            color: var(--warning-color);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .component-box {
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .component-box h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .component-box p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .flow-diagram {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px dashed var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+
+        .flow-step {
+            padding: 0.5rem 0;
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .flow-step:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .improvement-item {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--success-color);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .improvement-item strong {
+            color: var(--success-color);
+        }
+
+        .issue-item {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--warning-color);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .issue-item strong {
+            color: var(--warning-color);
+        }
+
+        .concept-badge {
+            display: inline-block;
+            background: rgba(37, 99, 235, 0.2);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tab-content {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .func-list {
+            list-style: none;
+        }
+
+        .func-list li {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .func-list li:hover {
+            background: rgba(37, 99, 235, 0.1);
+            border-left-color: var(--primary-color);
+        }
+
+        .func-signature {
+            color: var(--secondary-color);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .func-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .learning-path {
+            counter-reset: step-counter;
+        }
+
+        .learning-step {
+            counter-increment: step-counter;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .learning-step:before {
+            content: "Step " counter(step-counter);
+            display: block;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-good {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .pattern-good:before {
+            content: "✓ Good Pattern";
+            display: block;
+            color: var(--success-color);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-improvement {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+
+        .pattern-improvement:before {
+            content: "↻ Consider Improving";
+            display: block;
+            color: var(--warning-color);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            nav {
+                flex-direction: column;
+            }
+
+            nav button {
+                width: 100%;
+            }
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <h1>🎮 Pygame Squares Simulation</h1>
+            <p class="header-subtitle">Interactive Learning Dashboard • Refactored Code Explorer</p>
+            <nav>
+                <button class="nav-btn active" onclick="switchSection('overview')">Overview</button>
+                <button class="nav-btn" onclick="switchSection('architecture')">Architecture</button>
+                <button class="nav-btn" onclick="switchSection('codeexplorer')">Code Explorer</button>
+                <button class="nav-btn" onclick="switchSection('dataflow')">Data Flow</button>
+                <button class="nav-btn" onclick="switchSection('refactoring')">Refactoring</button>
+                <button class="nav-btn" onclick="switchSection('patterns')">Patterns</button>
+                <button class="nav-btn" onclick="switchSection('learning')">Learning Path</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- OVERVIEW SECTION -->
+        <section id="overview" class="active">
+            <div class="card">
+                <h2>📋 Project Overview</h2>
+                <p>A real-time 2D simulation built with Pygame where <span class="highlight">20 squares</span> move in a
+                    bounded window (800×600). Each square has unique behavior based on its size:</p>
+
+                <div class="grid-2">
+                    <div class="component-box">
+                        <h4>🏃 Smaller Squares</h4>
+                        <p>Flee from larger nearby squares within a <span class="highlight">150px radius</span>. They
+                            detect threats and move away.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>🎯 Larger Squares</h4>
+                        <p>Chase smaller nearby squares within a <span class="highlight">200px radius</span>. They
+                            pursue prey actively.</p>
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <h4>🔄 Lifecycle</h4>
+                    <p>Each square has a <span class="highlight">30-180 second lifespan</span>. When it expires, a new
+                        random square replaces it to maintain stable population.</p>
+                </div>
+
+                <h3>Core Simulation Rules</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step"><strong>Every Frame:</strong></div>
+                    <div class="flow-step">1. Age each square and check for lifespan expiration</div>
+                    <div class="flow-step">2. Find bigger/smaller squares nearby</div>
+                    <div class="flow-step">3. Apply flee and chase steering behaviors</div>
+                    <div class="flow-step">4. Update position based on velocity</div>
+                    <div class="flow-step">5. Handle wall collisions and bouncing</div>
+                    <div class="flow-step">6. Render to screen at 60 FPS</div>
+                </div>
+
+                <h3>Technology Stack</h3>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+                    <span class="concept-badge">Python 3.8+</span>
+                    <span class="concept-badge">Pygame 2.6.1</span>
+                    <span class="concept-badge">Dataclasses</span>
+                    <span class="concept-badge">Type Hints</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 Key Features</h2>
+                <div class="improvement-item">
+                    <strong>Delta-Time Movement:</strong> Motion is scaled by frame time for consistent speed across all
+                    FPS values. Squares move pixels/second, not pixels/frame.
+                </div>
+                <div class="improvement-item">
+                    <strong>Speed Clamping:</strong> Each square has a max speed based on its size. Larger squares move
+                    slower to balance gameplay.
+                </div>
+                <div class="improvement-item">
+                    <strong>Vector Normalization:</strong> Flee and chase directions are normalized (unit vectors)
+                    before applying force strength for consistent behavior.
+                </div>
+                <div class="improvement-item">
+                    <strong>Emergent Behavior:</strong> Simple local rules produce complex global patterns. Swarms form,
+                    fleeing chains occur, predator-prey dynamics emerge.
+                </div>
+            </div>
+        </section>
+
+        <!-- ARCHITECTURE SECTION -->
+        <section id="architecture">
+            <div class="card">
+                <h2>🏗️ System Architecture</h2>
+                <p>The codebase follows a <span class="highlight">game-loop architecture</span> with distinct layers for
+                    data, behavior, and presentation.</p>
+
+                <h3>Architectural Layers</h3>
+                <div class="grid-2">
+                    <div class="component-box">
+                        <h4>1. Configuration Layer</h4>
+                        <p><strong>Lines 18-35</strong></p>
+                        <p>Constants control simulation parameters: screen size, FPS, square count, speed limits,
+                            lifespan range, and behavior radii/strengths.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>2. Data Model</h4>
+                        <p><strong>Lines 37-49</strong></p>
+                        <p>The <code>Square</code> dataclass stores position (x, y), velocity (vx, vy), size, max_speed,
+                            age, and lifespan. Immutable by design encourages safe mutations.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>3. Utility Layer</h4>
+                        <p><strong>Lines 51-56</strong></p>
+                        <p>Pure math functions: <code>distance_between()</code> for neighbor queries and
+                            <code>compute_max_speed()</code> for size-based speed scaling.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>4. Factory Layer</h4>
+                        <p><strong>Lines 58-83</strong></p>
+                        <p>Square creation functions with random initialization. Shared between initial creation and
+                            rebirth on death.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>5. Neighbor Detection</h4>
+                        <p><strong>Lines 85-116</strong></p>
+                        <p>Filters for finding nearby squares. The refactored <code>filter_nearby_squares()</code> DRY
+                            helper reduces duplicate scanning logic.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>6. Behavior Layer</h4>
+                        <p><strong>Lines 118-176</strong></p>
+                        <p>Steering functions: <code>apply_flee_behavior()</code>, <code>apply_chase_behavior()</code>,
+                            and <code>clamp_speed()</code> helper for force application.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>7. Simulation Engine</h4>
+                        <p><strong>Lines 189-230</strong></p>
+                        <p>The <code>update_squares()</code> function orchestrates one frame: aging, behavior, motion,
+                            and collision. Clear phase comments guide learning.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>8. Presentation Layer</h4>
+                        <p><strong>Lines 232-243</strong></p>
+                        <p>The <code>draw_scene()</code> function renders all squares as white rectangles on black
+                            background.</p>
+                    </div>
+                    <div class="component-box">
+                        <h4>9. Application Loop</h4>
+                        <p><strong>Lines 245-270</strong></p>
+                        <p>The <code>run()</code> function ties everything together: initialization, event handling,
+                            frame timing, and pygame lifecycle.</p>
+                    </div>
+                </div>
+
+                <h3>Component Interaction Diagram</h3>
+                <div class="flow-diagram">
+                    <strong>run() → Main Loop</strong>
+                    <div style="margin-left: 1rem; margin-top: 0.5rem;">
+                        <div class="flow-step">handle_events() → Check for quit</div>
+                        <div class="flow-step">update_squares() → Simulate one frame
+                            <div style="margin-left: 1.5rem;">
+                                <div class="flow-step">For each square:</div>
+                                <div style="margin-left: 1.5rem;">
+                                    <div class="flow-step">find_bigger_nearby_squares()</div>
+                                    <div class="flow-step">apply_flee_behavior() → clamp_speed()</div>
+                                    <div class="flow-step">find_smaller_nearby_squares()</div>
+                                    <div class="flow-step">apply_chase_behavior() → clamp_speed()</div>
+                                    <div class="flow-step">Update position, handle walls</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flow-step">draw_scene() → Render to screen</div>
+                        <div class="flow-step">pygame.display.flip() → Show frame</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔗 Data Flow: One Frame</h2>
+                <p>Trace how a single square is processed in one 60 FPS frame (Δt ≈ 16.67ms):</p>
+                <div class="code-block">
+                    <span class="highlight">INPUT:</span> squares list, screen bounds, delta_time
+                    ↓
+                    FOR each square:
+                    <span class="highlight">AGE PHASE:</span>
+                    age += delta_time
+                    IF age ≥ lifespan:
+                    → Replace with new random square, skip to next
+
+                    <span class="highlight">DETECTION PHASE:</span>
+                    bigger_squares = find_bigger_nearby_squares(square, FLEE_RADIUS)
+                    smaller_squares = find_smaller_nearby_squares(square, CHASE_RADIUS)
+
+                    <span class="highlight">BEHAVIOR PHASE:</span>
+                    apply_flee_behavior(square, bigger_squares, FLEE_STRENGTH * delta_time)
+                    → Accumulate flee forces → Normalize → Apply → Clamp speed
+                    apply_chase_behavior(square, smaller_squares, CHASE_STRENGTH * delta_time)
+                    → Accumulate chase forces → Normalize → Apply → Clamp speed
+
+                    <span class="highlight">MOVEMENT PHASE:</span>
+                    x += vx * delta_time
+                    y += vy * delta_time
+
+                    <span class="highlight">COLLISION PHASE:</span>
+                    IF x ≤ 0: x=0, vx *= -1 (bounce left wall)
+                    IF x+size ≥ width: x=width-size, vx *= -1 (bounce right wall)
+                    IF y ≤ 0: y=0, vy *= -1 (bounce top wall)
+                    IF y+size ≥ height: y=height-size, vy *= -1 (bounce bottom wall)
+
+                    OUTPUT: updated squares list
+                </div>
+            </div>
+        </section>
+
+        <!-- CODE EXPLORER SECTION -->
+        <section id="codeexplorer">
+            <div class="card">
+                <h2>🔍 Function & Class Reference</h2>
+                <p>Interactive guide to all functions and the Square dataclass. Click to learn more about each
+                    component.</p>
+
+                <h3>Square Dataclass</h3>
+                <div class="component-box">
+                    <h4>Square (Lines 37-49)</h4>
+                    <div class="code-block">
+                        @dataclass
+                        class Square:
+                        x: float # X position (pixels)
+                        y: float # Y position (pixels)
+                        vx: float # X velocity (pixels/second)
+                        vy: float # Y velocity (pixels/second)
+                        size: int # Width/height (pixels)
+                        max_speed: float # Speed limit (pixels/second)
+                        age: float # Time alive (seconds)
+                        lifespan: float # Lifetime before respawn (seconds)
+                    </div>
+                    <p><strong>Purpose:</strong> Immutable container for square state. Using a dataclass ensures type
+                        safety and clarity.</p>
+                </div>
+
+                <h3>Utility Functions</h3>
+                <ul class="func-list">
+                    <li onclick="expandFunc('distance_between')">
+                        <div class="func-signature">distance_between(a: Square, b: Square) → float</div>
+                        <div class="func-desc">Lines 51-52 | Returns Euclidean distance between two squares using
+                            Pythagorean theorem.</div>
+                    </li>
+                    <li onclick="expandFunc('compute_max_speed')">
+                        <div class="func-signature">compute_max_speed(size: int) → float</div>
+                        <div class="func-desc">Lines 54-60 | Scales max speed inversely with size. Larger squares move
+                            slower for balance.</div>
+                    </li>
+                </ul>
+
+                <h3>Factory Functions</h3>
+                <ul class="func-list">
+                    <li onclick="expandFunc('create_random_square')">
+                        <div class="func-signature">create_random_square() → Square</div>
+                        <div class="func-desc">Lines 62-81 | Creates a square with random position, velocity, size, and
+                            lifespan. Reused for both initial creation and rebirth.</div>
+                    </li>
+                    <li onclick="expandFunc('create_squares')">
+                        <div class="func-signature">create_squares(count: int) → List[Square]</div>
+                        <div class="func-desc">Lines 83-84 | Factory function using list comprehension. Creates initial
+                            population of squares.</div>
+                    </li>
+                </ul>
+
+                <h3>Neighbor Detection (Refactored)</h3>
+                <ul class="func-list">
+                    <li onclick="expandFunc('filter_nearby_squares')">
+                        <div class="func-signature">filter_nearby_squares(square, squares, radius, size_compare) →
+                            List[Square]</div>
+                        <div class="func-desc">Lines 86-102 | <span class="highlight">DRY Helper (NEW)</span> | Unified
+                            neighbor filter. Reduces duplicate loop logic. Takes a predicate function to customize
+                            filtering rules.</div>
+                    </li>
+                    <li onclick="expandFunc('find_bigger_nearby_squares')">
+                        <div class="func-signature">find_bigger_nearby_squares(square, squares, flee_radius) →
+                            List[Square]</div>
+                        <div class="func-desc">Lines 104-109 | Uses filter_nearby_squares with "bigger than" rule. Finds
+                            threats for flee behavior.</div>
+                    </li>
+                    <li onclick="expandFunc('find_smaller_nearby_squares')">
+                        <div class="func-signature">find_smaller_nearby_squares(square, squares, chase_radius) →
+                            List[Square]</div>
+                        <div class="func-desc">Lines 111-116 | Uses filter_nearby_squares with "smaller than" rule.
+                            Finds prey for chase behavior.</div>
+                    </li>
+                </ul>
+
+                <h3>Steering & Behavior</h3>
+                <ul class="func-list">
+                    <li onclick="expandFunc('apply_flee_behavior')">
+                        <div class="func-signature">apply_flee_behavior(square, bigger_squares, flee_strength) → None
+                        </div>
+                        <div class="func-desc">Lines 118-146 | Accumulates flee directions away from all threats,
+                            normalizes, and applies force. Calls clamp_speed().</div>
+                    </li>
+                    <li onclick="expandFunc('apply_chase_behavior')">
+                        <div class="func-signature">apply_chase_behavior(square, smaller_squares, chase_strength) → None
+                        </div>
+                        <div class="func-desc">Lines 152-176 | Accumulates chase directions toward all prey, normalizes,
+                            and applies force. Calls clamp_speed().</div>
+                    </li>
+                    <li onclick="expandFunc('clamp_speed')">
+                        <div class="func-signature">clamp_speed(square) → None</div>
+                        <div class="func-desc">Lines 148-150 | <span class="highlight">Speed Limiter (NEW)</span> |
+                            Enforces max_speed after steering forces. Prevents unrealistic acceleration.</div>
+                    </li>
+                </ul>
+
+                <h3>Simulation & Rendering</h3>
+                <ul class="func-list">
+                    <li onclick="expandFunc('update_squares')">
+                        <div class="func-signature">update_squares(squares, width, height, delta_time) → List[Square]
+                        </div>
+                        <div class="func-desc">Lines 189-230 | <span class="highlight">Main Simulation Step</span> |
+                            Orchestrates one frame with clear phases: age, behavior, movement, walls. Comments mark each
+                            phase.</div>
+                    </li>
+                    <li onclick="expandFunc('handle_events')">
+                        <div class="func-signature">handle_events() → bool</div>
+                        <div class="func-desc">Lines 178-181 | Checks for pygame events. Returns False on quit to stop
+                            the loop.</div>
+                    </li>
+                    <li onclick="expandFunc('draw_scene')">
+                        <div class="func-signature">draw_scene(screen: pygame.Surface, squares: List[Square]) → None
+                        </div>
+                        <div class="func-desc">Lines 232-243 | Renders all squares as white rectangles on black
+                            background.</div>
+                    </li>
+                </ul>
+
+                <h3>Application Entry Point</h3>
+                <ul class="func-list">
+                    <li onclick="expandFunc('run')">
+                        <div class="func-signature">run() → None</div>
+                        <div class="func-desc">Lines 245-269 | Main application loop. Initializes pygame, creates
+                            squares, runs game loop, and cleans up.</div>
+                    </li>
+                </ul>
+
+                <div id="func-details" style="margin-top: 2rem;"></div>
+            </div>
+        </section>
+
+        <!-- DATA FLOW SECTION -->
+        <section id="dataflow">
+            <div class="card">
+                <h2>🌊 Data Flow Analysis</h2>
+                <p>Understand how data moves through the system during simulation.</p>
+
+                <h3>Square State Lifecycle</h3>
+                <div class="flow-diagram">
+                    <strong>CREATION:</strong>
+                    <div style="margin-left: 1rem;">
+                        <div class="flow-step">create_random_square() → New Square with random (x, y, vx, vy, size,
+                            lifespan)</div>
+                        <div class="flow-step">create_squares(20) → List of 20 fresh squares</div>
+                    </div>
+                    <strong style="display: block; margin-top: 1rem;">SIMULATION:</strong>
+                    <div style="margin-left: 1rem;">
+                        <div class="flow-step">Each frame, update_squares() receives squares list</div>
+                        <div class="flow-step">For each square: age increases, behaviors applied, position updated</div>
+                        <div class="flow-step">Mutated square is returned in new list</div>
+                    </div>
+                    <strong style="display: block; margin-top: 1rem;">DEATH & REBIRTH:</strong>
+                    <div style="margin-left: 1rem;">
+                        <div class="flow-step">If age ≥ lifespan: square is replaced</div>
+                        <div class="flow-step">create_random_square() generates new square</div>
+                        <div class="flow-step">New square enters simulation with fresh age=0</div>
+                    </div>
+                </div>
+
+                <h3>Steering Force Pipeline</h3>
+                <div class="component-box">
+                    <h4>Flee Behavior: How Fear Becomes Motion</h4>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        <span class="highlight">STEP 1: DETECT</span>
+                        bigger_squares = find_bigger_nearby_squares(square, FLEE_RADIUS)
+                        → Returns list of all squares > current square within 150px
+
+                        <span class="highlight">STEP 2: ACCUMULATE VECTORS</span>
+                        FOR each threat:
+                        dx = threat.x - square.x (vector toward threat)
+                        away_x -= dx / distance (reverse direction, normalize by distance)
+
+                        <span class="highlight">STEP 3: NORMALIZE</span>
+                        length = √(away_x² + away_y²)
+                        away_x /= length (unit vector pointing away from all threats)
+                        away_y /= length
+
+                        <span class="highlight">STEP 4: APPLY FORCE</span>
+                        vx += away_x * FLEE_STRENGTH * delta_time
+                        vy += away_y * FLEE_STRENGTH * delta_time
+
+                        <span class="highlight">STEP 5: CLAMP</span>
+                        speed = √(vx² + vy²)
+                        IF speed > max_speed:
+                        scale = max_speed / speed
+                        vx *= scale, vy *= scale
+                    </div>
+                </div>
+
+                <div class="component-box">
+                    <h4>Chase Behavior: How Hunger Becomes Motion</h4>
+                    <p>Same pipeline, but:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>DETECT:</strong> find_smaller_nearby_squares(square, CHASE_RADIUS)</li>
+                        <li><strong>ACCUMULATE:</strong> toward_x += dx / distance (approach, not avoid)</li>
+                        <li><strong>APPLY:</strong> CHASE_STRENGTH instead of FLEE_STRENGTH</li>
+                        <li><strong>CLAMP:</strong> Same speed limiter</li>
+                    </ul>
+                </div>
+
+                <h3>Time-Based Movement</h3>
+                <div class="code-block">
+                    <span class="highlight">Frame Timing (60 FPS):</span>
+                    delta_time = clock.tick(60) / 1000.0
+                    → On 60 FPS: delta_time ≈ 0.01667 seconds
+
+                    <span class="highlight">Velocity Integration:</span>
+                    new_x = x + vx * delta_time
+                    new_y = y + vy * delta_time
+                    → If vx = 100 pixels/second and delta_time = 0.01667
+                    → Movement = 100 * 0.01667 ≈ 1.667 pixels per frame
+
+                    <span class="highlight">Behavior Scaling:</span>
+                    vx += away_x * FLEE_STRENGTH * delta_time
+                    → FLEE_STRENGTH = 80 pixels/second²
+                    → Force per frame = 80 * 0.01667 ≈ 1.33 pixels/second added
+                </div>
+
+                <h3>Spatial Queries</h3>
+                <div class="improvement-item">
+                    <strong>Neighbor Detection:</strong> filter_nearby_squares() uses O(n) linear scan per square. For
+                    20 squares, this is negligible. At 60 FPS with 20 squares, each square checks ~160 neighbor pairs
+                    per second—well within real-time budget.
+                </div>
+                <div class="improvement-item">
+                    <strong>Distance Calculation:</strong> hypot(dx, dy) is accurate and fast. Used in both neighbor
+                    detection and vector normalization. No floating-point issues at these scales.
+                </div>
+            </div>
+        </section>
+
+        <!-- REFACTORING SECTION -->
+        <section id="refactoring">
+            <div class="card">
+                <h2>🔧 Refactoring Deep Dive</h2>
+                <p>This version reflects a thoughtful refactoring focused on <span class="highlight">readability and
+                        maintainability</span> for learners. Every change aims to make the code easier to understand and
+                    modify.</p>
+
+                <h3>1. Module-Level Behavior Constants</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>❌ Before</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            def update_squares(...):
+                            for square in squares:
+                            # Magic numbers hidden!
+                            bigger = find_bigger(
+                            square, 150.0
+                            )
+                            apply_flee(
+                            square, bigger, 80.0
+                            )
+                        </div>
+                    </div>
+                    <div>
+                        <h4>✅ After</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            FLEE_RADIUS = 150.0
+                            FLEE_STRENGTH = 80.0
+                            CHASE_RADIUS = 200.0
+                            CHASE_STRENGTH = 60.0
+
+                            def update_squares(...):
+                            for square in squares:
+                            bigger = find_bigger(
+                            square, FLEE_RADIUS
+                            )
+                            apply_flee(
+                            square, bigger,
+                            FLEE_STRENGTH * dt
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div class="improvement-item">
+                    <strong>Why:</strong> Tuning values are now visible at module level. Students can change one
+                    constant and immediately see the effect on simulation behavior. No hunting through function code.
+                    Concept: <span class="concept-badge">Configuration Over Magic Numbers</span>
+                </div>
+
+                <h3>2. Unified Neighbor Filter Helper</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>❌ Before (Duplication)</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            def find_bigger(...):
+                            nearby = []
+                            for other in squares:
+                            if other is square:
+                            continue
+                            if other.size <= square.size: continue if distance> radius:
+                                continue
+                                nearby.append(other)
+                                return nearby
+
+                                def find_smaller(...):
+                                nearby = []
+                                for other in squares:
+                                if other is square:
+                                continue
+                                if other.size >= square.size:
+                                continue
+                                if distance > radius:
+                                continue
+                                nearby.append(other)
+                                return nearby
+                        </div>
+                    </div>
+                    <div>
+                        <h4>✅ After (DRY)</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            def filter_nearby_squares(
+                            square, squares, radius,
+                            size_compare
+                            ):
+                            nearby = []
+                            for other in squares:
+                            if other is square:
+                            continue
+                            if not size_compare(
+                            other.size, square.size
+                            ):
+                            continue
+                            if distance > radius:
+                            continue
+                            nearby.append(other)
+                            return nearby
+
+                            def find_bigger(...):
+                            return filter_nearby_squares(
+                            square, squares, radius,
+                            lambda o, s: o > s
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div class="improvement-item">
+                    <strong>Why:</strong> The filtering loop is identical in both functions—only the comparison
+                    predicate differs. Moving shared logic to one helper eliminates duplication (DRY principle). Easier
+                    to fix bugs: one fix applies to both functions. Easier to optimize: improve the loop once. Concept:
+                    <span class="concept-badge">DRY (Don't Repeat Yourself)</span>
+                </div>
+
+                <h3>3. Centralized Speed Clamping</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>❌ Before (Repeated)</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            def apply_flee_behavior(...):
+                            # Compute forces...
+                            vx += away_x * force
+                            vy += away_y * force
+                            # Clamp speed
+                            speed = hypot(vx, vy)
+                            if speed > max_speed:
+                            scale = max_speed/speed
+                            vx *= scale
+                            vy *= scale
+
+                            def apply_chase_behavior(...):
+                            # Compute forces...
+                            vx += toward_x * force
+                            vy += toward_y * force
+                            # Clamp speed (repeated!)
+                            speed = hypot(vx, vy)
+                            if speed > max_speed:
+                            scale = max_speed/speed
+                            vx *= scale
+                            vy *= scale
+                        </div>
+                    </div>
+                    <div>
+                        <h4>✅ After (Helper)</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            def clamp_speed(square):
+                            """Enforce speed limit after
+                            steering forces are applied."""
+                            speed = hypot(
+                            square.vx, square.vy
+                            )
+                            if speed > square.max_speed:
+                            scale = (
+                            square.max_speed / speed
+                            )
+                            square.vx *= scale
+                            square.vy *= scale
+
+                            def apply_flee_behavior(...):
+                            # Compute forces...
+                            vx += away_x * force
+                            vy += away_y * force
+                            clamp_speed(square)
+
+                            def apply_chase_behavior(...):
+                            # Compute forces...
+                            vx += toward_x * force
+                            vy += toward_y * force
+                            clamp_speed(square)
+                        </div>
+                    </div>
+                </div>
+                <div class="improvement-item">
+                    <strong>Why:</strong> Speed clamping is an independent concern that appears after every force
+                    application. A helper makes the code more readable and maintainable. If clamping logic needs
+                    improvement, one change fixes both behaviors. Concept: <span class="concept-badge">Helper
+                        Functions</span> <span class="concept-badge">Single Responsibility</span>
+                </div>
+
+                <h3>4. Clear Variable Naming for Vector Math</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>❌ Before (Unclear)</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            x = 0.0
+                            y = 0.0
+                            for other in threats:
+                            dx = ...
+                            dy = ...
+                            distance = hypot(dx, dy)
+                            x -= dx / distance
+                            y -= dy / distance
+                        </div>
+                    </div>
+                    <div>
+                        <h4>✅ After (Descriptive)</h4>
+                        <div class="code-block" style="font-size: 0.85rem;">
+                            away_x = 0.0
+                            away_y = 0.0
+                            for other in threats:
+                            dx = other.x - square.x
+                            dy = other.y - square.y
+                            distance = hypot(dx, dy)
+                            # Reverse direction
+                            away_x -= dx / distance
+                            away_y -= dy / distance
+
+                            # Later: normalize and apply
+                            away_x /= length
+                            away_y /= length
+                        </div>
+                    </div>
+                </div>
+                <div class="improvement-item">
+                    <strong>Why:</strong> The variable names now express intent: "away_x" clearly means "component of
+                    flee direction"; generic "x" and "y" obscure the meaning. For beginners learning vector math, clear
+                    names reduce cognitive load. Concept: <span class="concept-badge">Self-Documenting Code</span>
+                </div>
+
+                <h3>5. Explicit Phase Comments in update_squares()</h3>
+                <div class="code-block">
+                    def update_squares(...):
+                    updated_squares = []
+                    for square in squares:
+                    <span class="highlight"># Phase 1: Age and check for lifespan expiration.</span>
+                    square.age += delta_time
+                    if square.age >= square.lifespan:
+                    updated_squares.append(create_random_square())
+                    continue
+
+                    <span class="highlight"># Phase 2: Detect neighbors and apply steering behaviors.</span>
+                    bigger_squares = find_bigger_nearby_squares(...)
+                    apply_flee_behavior(...)
+
+                    <span class="highlight"># Phase 3: Integrate position based on velocity.</span>
+                    square.x += square.vx * delta_time
+                    square.y += square.vy * delta_time
+
+                    <span class="highlight"># Phase 4: Handle boundary collisions.</span>
+                    if square.x <= 0: square.x=0 square.vx *=-1 # ... more boundary checks
+                        updated_squares.append(square) return updated_squares </div>
+                        <div class="improvement-item">
+                            <strong>Why:</strong> Comments mark distinct simulation phases. Students can trace one
+                            square through a complete frame without getting lost. Easier to understand game loop
+                            patterns. Easier to add features: "where do I add gravity? Phase 3." Concept: <span
+                                class="concept-badge">Game Loop Architecture</span>
+                        </div>
+
+                        <h3>Refactoring Impact Summary</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--primary-color);">
+                                    <th style="text-align: left; padding: 0.75rem;">Improvement</th>
+                                    <th style="text-align: left; padding: 0.75rem;">Impact</th>
+                                    <th style="text-align: left; padding: 0.75rem;">Learning Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 0.75rem;">Module constants</td>
+                                    <td style="padding: 0.75rem;">Tuning is now obvious</td>
+                                    <td style="padding: 0.75rem;">Configuration patterns</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 0.75rem;">DRY filter helper</td>
+                                    <td style="padding: 0.75rem;">-20 lines duplicated logic</td>
+                                    <td style="padding: 0.75rem;">Refactoring & abstraction</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 0.75rem;">clamp_speed() helper</td>
+                                    <td style="padding: 0.75rem;">-10 lines duplicated logic</td>
+                                    <td style="padding: 0.75rem;">Helper functions</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 0.75rem;">Clearer variable names</td>
+                                    <td style="padding: 0.75rem;">Vector math is clearer</td>
+                                    <td style="padding: 0.75rem;">Self-documenting code</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.75rem;">Phase comments</td>
+                                    <td style="padding: 0.75rem;">Easy frame tracing</td>
+                                    <td style="padding: 0.75rem;">Game loop understanding</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                </div>
+        </section>
+
+        <!-- PATTERNS SECTION -->
+        <section id="patterns">
+            <div class="card">
+                <h2>✨ Code Patterns & Best Practices</h2>
+                <p>This project demonstrates several programming patterns that are useful for game development and
+                    simulation.</p>
+
+                <h3>Good Patterns Used</h3>
+
+                <div class="pattern-good">
+                    <div><strong>1. Dataclass for Entity State</strong></div>
+                    <p>Using <code>@dataclass</code> for the <code>Square</code> ensures:</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Type safety with annotations</li>
+                        <li>Auto-generated __init__ method</li>
+                        <li>Clear intent: "this is data"</li>
+                        <li>Easy debugging with auto __repr__</li>
+                    </ul>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        @dataclass
+                        class Square:
+                        x: float
+                        y: float
+                        vx: float
+                        vy: float
+                        size: int
+                        max_speed: float
+                        age: float
+                        lifespan: float
+                    </div>
+                </div>
+
+                <div class="pattern-good">
+                    <div><strong>2. Delta-Time for Frame-Rate Independence</strong></div>
+                    <p>Movement and forces are scaled by <code>delta_time</code>:</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Behavior remains consistent at any FPS</li>
+                        <li>Easy to slow-motion or speed-up simulation</li>
+                        <li>Professional standard in game development</li>
+                    </ul>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        delta_time = clock.tick(FPS) / 1000.0
+                        x += vx * delta_time
+                        vx += force * delta_time
+                    </div>
+                </div>
+
+                <div class="pattern-good">
+                    <div><strong>3. Vector Normalization for Consistent Forces</strong></div>
+                    <p>Direction vectors are normalized (scaled to unit length) before applying force:</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Force magnitude stays constant regardless of situation</li>
+                        <li>No dependency on distance between entities</li>
+                        <li>Predictable, balanced gameplay</li>
+                    </ul>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        # Combine directions
+                        away_x -= dx / distance
+                        away_y -= dy / distance
+
+                        # Normalize to unit vector
+                        length = hypot(away_x, away_y)
+                        away_x /= length
+                        away_y /= length
+
+                        # Apply constant force
+                        vx += away_x * FLEE_STRENGTH
+                    </div>
+                </div>
+
+                <div class="pattern-good">
+                    <div><strong>4. Pure Functions for Math & Queries</strong></div>
+                    <p>Functions like <code>distance_between()</code>, <code>compute_max_speed()</code>, and
+                        <code>filter_nearby_squares()</code> are pure (no side effects):</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Easy to test in isolation</li>
+                        <li>No hidden state or surprises</li>
+                        <li>Can call multiple times safely</li>
+                    </ul>
+                </div>
+
+                <div class="pattern-good">
+                    <div><strong>5. Shared Factory for Initialization & Rebirth</strong></div>
+                    <p>Both initial creation and lifespan rebirth use the same <code>create_random_square()</code>
+                        function:</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Consistency: new and respawned squares are identical</li>
+                        <li>Easy maintenance: fix one, fix all</li>
+                        <li>Encourages stable population</li>
+                    </ul>
+                </div>
+
+                <div class="pattern-good">
+                    <div><strong>6. Type Hints Throughout</strong></div>
+                    <p>All functions use Python type hints:</p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Self-documenting: readers know what types are used</li>
+                        <li>IDE support: autocomplete and type checking</li>
+                        <li>Catches errors early</li>
+                    </ul>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        def filter_nearby_squares(
+                        square: Square,
+                        squares: List[Square],
+                        radius: float,
+                        size_compare, # Callable[[int, int], bool]
+                        ) -> List[Square]:
+                    </div>
+                </div>
+
+                <h3>Patterns to Consider for Future Improvements</h3>
+
+                <div class="pattern-improvement">
+                    <div><strong>1. Type Hint for Predicates</strong></div>
+                    <p>The <code>size_compare</code> parameter in <code>filter_nearby_squares()</code> uses a lambda.
+                        Making the type explicit would improve clarity:</p>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        from typing import Callable
+
+                        def filter_nearby_squares(
+                        square: Square,
+                        squares: List[Square],
+                        radius: float,
+                        size_compare: Callable[[int, int], bool],
+                        ) -> List[Square]:
+                        # ...
+                    </div>
+                    <p>This tells readers that <code>size_compare</code> is a function taking two ints and returning
+                        bool.</p>
+                </div>
+
+                <div class="pattern-improvement">
+                    <div><strong>2. Collision Response with Elasticity</strong></div>
+                    <p>Currently, wall bounces reverse velocity (elastic collision, elasticity = 1.0). In future, make
+                        elasticity configurable:</p>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        ELASTICITY: float = 1.0
+
+                        if square.x <= 0: square.x=0 square.vx *=-ELASTICITY # Easy to tune damping </div>
+                    </div>
+
+                    <div class="pattern-improvement">
+                        <div><strong>3. Configurable Neighbor Radii per Square</strong></div>
+                        <p>Currently, FLEE_RADIUS and CHASE_RADIUS are global. Per-square radii could make behavior
+                            richer:</p>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            @dataclass
+                            class Square:
+                            # ... existing fields ...
+                            flee_radius: float = FLEE_RADIUS
+                            chase_radius: float = CHASE_RADIUS
+                        </div>
+                    </div>
+
+                    <div class="pattern-improvement">
+                        <div><strong>4. Event System for Interactions</strong></div>
+                        <p>When a square catches another or dies, trigger events. This decouples behavior from physics:
+                        </p>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            class SquareEvent:
+                            CAUGHT = "caught"
+                            DIED = "died"
+
+                            def on_event(event_type, square, target=None):
+                            if event_type == SquareEvent.CAUGHT:
+                            # Score updates, sound effects, etc.
+                            pass
+                        </div>
+                    </div>
+
+                    <div class="pattern-improvement">
+                        <div><strong>5. Spatial Partitioning for Scale</strong></div>
+                        <p>At 20 squares, O(n²) neighbor checks are fine. At 1000+ squares, use a grid or quadtree:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>Divide screen into cells</li>
+                            <li>Only check neighbors in adjacent cells</li>
+                            <li>Reduces complexity from O(n²) to O(n)</li>
+                        </ul>
+                    </div>
+
+                    <h3>Design Decisions & Rationale</h3>
+                    <div class="component-box">
+                        <h4>Why Combine All Threats Before Normalizing?</h4>
+                        <p>Instead of normalizing each threat direction individually:</p>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            # DON'T: Normalize each threat separately
+                            for other in threats:
+                            away_x = -(other.x - square.x) / distance
+                            away_y = -(other.y - square.y) / distance
+                            away_x /= hypot(away_x, away_y) # Redouble work
+                            vx += away_x * force
+
+                            # DO: Accumulate, then normalize once (current approach)
+                            for other in threats:
+                            away_x -= dx / distance
+                            away_y -= dy / distance
+                            away_x /= length
+                            away_y /= length
+                            vx += away_x * force
+                        </div>
+                        <p><strong>Why:</strong> The second approach is more efficient (one normalization per square
+                            instead of per threat) and produces more balanced behavior (all threats equally influence
+                            the final direction).</p>
+                    </div>
+                </div>
+        </section>
+
+        <!-- LEARNING PATH SECTION -->
+        <section id="learning">
+            <div class="card">
+                <h2>🎓 Learning Pathway & Next Steps</h2>
+                <p>Use this structured journey to deepen your understanding of the project and game development
+                    concepts.</p>
+
+                <h3>Phase 1: Observation & Understanding</h3>
+                <div class="learning-path">
+                    <div class="learning-step">
+                        <p><strong>Run the simulation</strong> and observe behavior for 2 minutes. Describe what you
+                            see:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>Do small squares flee from large ones?</li>
+                            <li>Do large squares chase small ones?</li>
+                            <li>When do squares disappear and respawn?</li>
+                            <li>How do collisions with walls behave?</li>
+                        </ul>
+                    </div>
+
+                    <div class="learning-step">
+                        <p><strong>Read main.py line-by-line</strong> from top to bottom. For each function, answer:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>What does it take as input?</li>
+                            <li>What does it return?</li>
+                            <li>How does it affect the squares?</li>
+                        </ul>
+                    </div>
+
+                    <div class="learning-step">
+                        <p><strong>Trace one square through one frame.</strong> Pretend you are square #5. Starting from
+                            the beginning of <code>update_squares()</code>, describe your journey:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>How does your age change?</li>
+                            <li>Do you detect any threats? Any prey?</li>
+                            <li>How do your vx and vy change?</li>
+                            <li>Where do you end up?</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Phase 2: Experimentation & Tuning</h3>
+                <div class="learning-path">
+                    <div class="learning-step">
+                        <p><strong>Tune behavior constants.</strong> Modify one constant at a time and observe the
+                            effect:</p>
+                        <div class="code-block">
+                            # Try these experiments:
+                            FLEE_RADIUS = 300.0 # 2x the original
+                            FLEE_STRENGTH = 10.0 # Much weaker
+                            CHASE_RADIUS = 50.0 # Very close
+                        </div>
+                        <p>For each change:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>Predict the effect before running</li>
+                            <li>Run and observe for 30 seconds</li>
+                            <li>Did the behavior match your prediction?</li>
+                            <li>Revert and try another constant</li>
+                        </ul>
+                    </div>
+
+                    <div class="learning-step">
+                        <p><strong>Modify the Square dataclass.</strong> Add a new attribute (e.g., <code>color</code>)
+                            and propagate it through the code:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>Add the field to @dataclass Square</li>
+                            <li>Assign random color in create_random_square()</li>
+                            <li>Modify draw_scene() to use square.color instead of white</li>
+                            <li>Run and verify the colors persist across frames</li>
+                        </ul>
+                    </div>
+
+                    <div class="learning-step">
+                        <p><strong>Add a debug visualization.</strong> Draw circles around each square showing the
+                            flee/chase radii:</p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>In draw_scene(), after drawing each square, add:
+                                <code>pygame.draw.circle(screen, (100, 100, 100), (int(square.x + square.size/2), int(square.y + square.size/2)), int(FLEE_RADIUS), 1)</code>
+                            </li>
+                            <li>Run and observe how nearby squares interact</li>
+                            <li>Try drawing chase_radius circles in a different color</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Phase 3: Feature Implementation</h3>
+                <div class="learning-path">
+                    <div class="learning-step">
+                        <p><strong>Feature: Size-Based Coloring</strong></p>
+                        <p>Small squares are blue, large squares are red, medium are green.</p>
+                        <div class="code-block">
+                            def get_color(square):
+                            if square.size < 20: return (100, 149, 237) # Cornflower blue elif square.size < 30: return
+                                (144, 238, 144) # Light green else: return (220, 20, 60) # Crimson red # Then in
+                                draw_scene: color=get_color(square) pygame.draw.rect(screen, color, (...)) </div>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Feature: Lifespan Indicator</strong></p>
+                            <p>Draw a small bar above each square showing how much lifespan remains.</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Bar fills fully at age=0</li>
+                                <li>Bar empties as age→lifespan</li>
+                                <li>Calculate fill_ratio = (lifespan - age) / lifespan</li>
+                                <li>Draw as colored bar above square</li>
+                            </ul>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Feature: Frozen Mode</strong></p>
+                            <p>Press SPACE to freeze/unfreeze all squares.</p>
+                            <div class="code-block">
+                                # In handle_events():
+                                for event in pygame.event.get():
+                                if event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_SPACE:
+                                # Toggle frozen state
+                                return (True, not is_frozen) # Signal freeze toggle
+
+                                # In update_squares():
+                                if is_frozen:
+                                return squares # Skip all updates
+                            </div>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Feature: Gravity</strong></p>
+                            <p>Add a downward gravitational force applied to all squares.</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>In update_squares(), after behavior phase:
+                                    <code>square.vy += GRAVITY * delta_time</code></li>
+                                <li>Make GRAVITY a tunable constant (e.g., 50.0 pixels/s²)</li>
+                                <li>Observe how squares fall and bounce off the bottom</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>Phase 4: Analysis & Optimization</h3>
+                    <div class="learning-path">
+                        <div class="learning-step">
+                            <p><strong>Performance Profiling</strong></p>
+                            <p>Add timing to measure frame time and identify bottlenecks:</p>
+                            <div class="code-block">
+                                import time
+
+                                start_time = time.time()
+                                squares = update_squares(...)
+                                end_time = time.time()
+
+                                print(f"Update took {(end_time - start_time)*1000:.2f}ms")
+                            </div>
+                            <p>At what square count does the frame time exceed 16ms (60 FPS)?</p>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Neighbor Efficiency Analysis</strong></p>
+                            <p>Count how many neighbor checks happen per frame:</p>
+                            <div class="code-block">
+                                def filter_nearby_squares(...):
+                                global check_count
+                                check_count += 1
+                                # ... rest of function
+
+                                check_count = 0
+                                # After a frame:
+                                print(f"Neighbor checks: {check_count}")
+                            </div>
+                            <p>With 20 squares and O(n²) checks: expect ~400 checks per frame. At 60 FPS = 24,000
+                                checks/second.</p>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Spatial Partitioning Design (Advanced)</strong></p>
+                            <p>Design a grid-based neighbor lookup for scalability:</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Divide screen into 4×3 grid (cells of ~200×200px)</li>
+                                <li>For each square, compute which cell it occupies</li>
+                                <li>Only check neighbors in same + adjacent cells</li>
+                                <li>Measure performance improvement at 100+ squares</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>Phase 5: Debugging Challenges</h3>
+                    <div class="learning-path">
+                        <div class="learning-step">
+                            <p><strong>Challenge: Silent Bug</strong></p>
+                            <p>Suppose squares are escaping the screen boundaries. Debug without changing code—only by
+                                adding print() statements:</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Print x, y, size at each phase of update_squares()</li>
+                                <li>Check if boundary conditions are evaluated correctly</li>
+                                <li>Identify where the bug occurs and propose a fix</li>
+                            </ul>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Challenge: Unexpected Behavior</strong></p>
+                            <p>Suppose squares are not fleeing from larger neighbors. Trace the issue:</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Print find_bigger_nearby_squares() output for a few squares</li>
+                                <li>Print the accumulated away_x, away_y before normalization</li>
+                                <li>Print vx, vy before and after apply_flee_behavior()</li>
+                                <li>Determine if the bug is in detection, accumulation, or application</li>
+                            </ul>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Challenge: Performance Regression</strong></p>
+                            <p>After adding a feature, frames-per-second dropped from 60 to 40. Diagnose:</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Use timers to measure each phase of update_squares()</li>
+                                <li>Compare old timing vs. new timing</li>
+                                <li>Identify which phase is now slow</li>
+                                <li>Optimize that phase</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>Phase 6: Conceptual Understanding</h3>
+                    <div class="learning-path">
+                        <div class="learning-step">
+                            <p><strong>Explain These Concepts in Your Own Words:</strong></p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li><strong>Vector Normalization:</strong> Why do we divide by length?</li>
+                                <li><strong>Delta-Time Movement:</strong> Why is it better than pixels-per-frame?</li>
+                                <li><strong>Game Loop:</strong> What are the four main phases every frame?</li>
+                                <li><strong>Emergent Behavior:</strong> How do simple rules create complex patterns?
+                                </li>
+                                <li><strong>Lifespan Rebirth:</strong> Why reuse create_random_square()?</li>
+                            </ul>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Design a New Simulation:</strong></p>
+                            <p>Create a similar simulation with different entities and behaviors. Examples:</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Boids (flocking birds)</li>
+                                <li>Particle system (sparks, rain)</li>
+                                <li>Predator-prey with food sources</li>
+                                <li>Bouncing balls with gravity and friction</li>
+                            </ul>
+                            <p>Use the same architecture: dataclass, pure functions, game loop, delta-time movement.</p>
+                        </div>
+
+                        <div class="learning-step">
+                            <p><strong>Extend to Multiplayer:</strong></p>
+                            <p>Design a networked version where players control squares and can feed/attack others.
+                                Consider:</p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>State synchronization across network</li>
+                                <li>Latency and lag compensation</li>
+                                <li>Prediction for smooth motion</li>
+                                <li>Authority (who decides if a catch happened?)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📚 Suggested Reading & Resources</h2>
+                    <div class="component-box">
+                        <h4>Game Programming Concepts</h4>
+                        <ul style="margin-left: 1.5rem;">
+                            <li><strong>Game Loop:</strong> The main rhythm of any real-time game. Input → Update →
+                                Render → Repeat.</li>
+                            <li><strong>Delta Time:</strong> Frame-rate independent movement. Always multiply by Δt.
+                            </li>
+                            <li><strong>Vector Math:</strong> Position, velocity, and force are vectors. Learn dot/cross
+                                products for advanced behaviors.</li>
+                            <li><strong>Steering Behaviors:</strong> Classic AI patterns: seek, flee, pursuit, evasion,
+                                flocking.</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-box">
+                        <h4>Python & Software Engineering</h4>
+                        <ul style="margin-left: 1.5rem;">
+                            <li><strong>Dataclasses:</strong> Modern Python way to define simple data containers.</li>
+                            <li><strong>Type Hints:</strong> Make code safer and more self-documenting.</li>
+                            <li><strong>DRY Principle:</strong> Don't repeat yourself. Extract common logic into
+                                helpers.</li>
+                            <li><strong>Pure Functions:</strong> Functions with no side effects are easier to test and
+                                reason about.</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-box">
+                        <h4>Debugging Practices</h4>
+                        <ul style="margin-left: 1.5rem;">
+                            <li><strong>Print Debugging:</strong> Add print() statements to trace variable values.</li>
+                            <li><strong>Rubber Duck Debugging:</strong> Explain your code line-by-line to someone (or a
+                                rubber duck).</li>
+                            <li><strong>Hypothesis Testing:</strong> Form a guess about the bug, then test it
+                                systematically.</li>
+                            <li><strong>Incremental Changes:</strong> Refactor one small piece at a time, testing after
+                                each change.</li>
+                        </ul>
+                    </div>
+                </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>🎮 Pygame Project Learning Dashboard</p>
+        <p style="font-size: 0.9rem; margin-top: 0.5rem;">Built for beginners learning game development, refactoring,
+            and software engineering best practices.</p>
+    </footer>
+
+    <script>
+        function switchSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function expandFunc(funcName) {
+            const detailsDiv = document.getElementById('func-details');
+
+            const details = {
+                'distance_between': {
+                    title: 'distance_between(a: Square, b: Square) → float',
+                    lines: '51-52',
+                    description: 'Calculates the Euclidean distance between two squares using the Pythagorean theorem.',
+                    code: `def distance_between(a: Square, b: Square) -> float:
+    return math.hypot(b.x - a.x, b.y - a.y)`,
+                    usage: 'Used in neighbor detection and steering calculations to determine if another square is within a detection radius.',
+                    concept: 'Spatial Math, Euclidean Distance'
+                },
+                'compute_max_speed': {
+                    title: 'compute_max_speed(size: int) → float',
+                    lines: '54-60',
+                    description: 'Scales maximum speed inversely with square size. Larger squares move slower for game balance.',
+                    code: `def compute_max_speed(size: int) -> float:
+    size_range = MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
+    if size_range == 0:
+        return GLOBAL_MAX_SPEED
+    normalized = (size - MIN_SQUARE_SIZE) / size_range
+    return GLOBAL_MAX_SPEED * (1.0 - 0.6 * normalized)`,
+                    usage: 'Called in create_random_square() to assign each square a speed limit based on its size.',
+                    concept: 'Normalization, Game Balance'
+                },
+                'create_random_square': {
+                    title: 'create_random_square() → Square',
+                    lines: '62-81',
+                    description: 'Factory function that creates a Square with random position, velocity, size, and lifespan. Reused for both initial creation and respawn on death.',
+                    code: `def create_random_square() -> Square:
+    size = random.randint(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE)
+    max_speed = compute_max_speed(size)
+    x = random.randint(0, SCREEN_WIDTH - size)
+    y = random.randint(0, SCREEN_HEIGHT - size)
+    vx = random.choice([-1, 1]) * random.uniform(40, max_speed)
+    vy = random.choice([-1, 1]) * random.uniform(40, max_speed)
+    lifespan = random.uniform(MIN_LIFESPAN, MAX_LIFESPAN)
+    return Square(x=float(x), y=float(y), vx=float(vx), vy=float(vy), 
+                  size=size, max_speed=max_speed, age=0.0, lifespan=lifespan)`,
+                    usage: 'Called by create_squares() for initial population, and by update_squares() when a square\'s lifespan expires.',
+                    concept: 'Factory Pattern, DRY Principle'
+                },
+                'create_squares': {
+                    title: 'create_squares(count: int) → List[Square]',
+                    lines: '83-84',
+                    description: 'List comprehension factory. Creates the initial population of squares.',
+                    code: `def create_squares(count: int) -> List[Square]:
+    return [create_random_square() for _ in range(count)]`,
+                    usage: 'Called in run() to initialize the 20 squares at simulation start.',
+                    concept: 'List Comprehension, Factory Pattern'
+                },
+                'filter_nearby_squares': {
+                    title: 'filter_nearby_squares(square, squares, radius, size_compare) → List[Square]',
+                    lines: '86-102',
+                    description: 'NEW HELPER (Refactoring). Unified neighbor filter that scans all squares and returns nearby squares matching a size comparison rule. This is a DRY pattern that replaces duplicate neighbor-scanning logic in find_bigger_nearby_squares() and find_smaller_nearby_squares().',
+                    code: `def filter_nearby_squares(square, squares, radius, size_compare):
+    nearby = []
+    for other in squares:
+        if other is square:
+            continue
+        if not size_compare(other.size, square.size):
+            continue
+        if distance_between(square, other) <= radius:
+            nearby.append(other)
+    return nearby`,
+                    usage: 'Called by find_bigger_nearby_squares() and find_smaller_nearby_squares() with different size_compare predicates.',
+                    concept: 'DRY Principle, Higher-Order Functions, Predicates'
+                },
+                'find_bigger_nearby_squares': {
+                    title: 'find_bigger_nearby_squares(square, squares, flee_radius) → List[Square]',
+                    lines: '104-109',
+                    description: 'Finds all squares larger than the given square within flee_radius. These are threats that trigger flee behavior.',
+                    code: `def find_bigger_nearby_squares(square, squares, flee_radius):
+    return filter_nearby_squares(
+        square, squares, flee_radius,
+        lambda other_size, square_size: other_size > square_size)`,
+                    usage: 'Called in update_squares() to detect threats for the flee behavior phase.',
+                    concept: 'Neighbor Detection, Lambda Functions'
+                },
+                'find_smaller_nearby_squares': {
+                    title: 'find_smaller_nearby_squares(square, squares, chase_radius) → List[Square]',
+                    lines: '111-116',
+                    description: 'Finds all squares smaller than the given square within chase_radius. These are prey that trigger chase behavior.',
+                    code: `def find_smaller_nearby_squares(square, squares, chase_radius):
+    return filter_nearby_squares(
+        square, squares, chase_radius,
+        lambda other_size, square_size: other_size < square_size)`,
+                    usage: 'Called in update_squares() to detect prey for the chase behavior phase.',
+                    concept: 'Neighbor Detection, Lambda Functions'
+                },
+                'apply_flee_behavior': {
+                    title: 'apply_flee_behavior(square, bigger_squares, flee_strength) → None',
+                    lines: '118-146',
+                    description: 'Applies a steering force that moves the square away from all nearby threats. Accumulates away-vectors, normalizes to unit vector, scales by strength, and clamps speed.',
+                    code: `def apply_flee_behavior(square, bigger_squares, flee_strength):
+    if not bigger_squares:
+        return
+    away_x = away_y = 0.0
+    for other in bigger_squares:
+        dx, dy = other.x - square.x, other.y - square.y
+        distance = math.hypot(dx, dy)
+        if distance == 0:
+            continue
+        away_x -= dx / distance
+        away_y -= dy / distance
+    length = math.hypot(away_x, away_y)
+    if length == 0:
+        return
+    away_x /= length
+    away_y /= length
+    square.vx += away_x * flee_strength
+    square.vy += away_y * flee_strength
+    clamp_speed(square)`,
+                    usage: 'Called in update_squares() during the behavior phase for each square.',
+                    concept: 'Vector Math, Steering Behaviors, Normalization'
+                },
+                'clamp_speed': {
+                    title: 'clamp_speed(square) → None',
+                    lines: '148-150',
+                    description: 'NEW HELPER (Refactoring). Enforces the speed limit after steering forces are applied. Prevents squares from accelerating too much and ensures consistent max speed.',
+                    code: `def clamp_speed(square):
+    speed = math.hypot(square.vx, square.vy)
+    if speed > square.max_speed:
+        scale = square.max_speed / speed
+        square.vx *= scale
+        square.vy *= scale`,
+                    usage: 'Called by apply_flee_behavior() and apply_chase_behavior() to limit velocity magnitude.',
+                    concept: 'Vector Magnitude, Speed Limiting'
+                },
+                'apply_chase_behavior': {
+                    title: 'apply_chase_behavior(square, smaller_squares, chase_strength) → None',
+                    lines: '152-176',
+                    description: 'Applies a steering force that moves the square toward all nearby prey. Similar to flee but accumulates toward-vectors instead of away-vectors.',
+                    code: `def apply_chase_behavior(square, smaller_squares, chase_strength):
+    if not smaller_squares:
+        return
+    toward_x = toward_y = 0.0
+    square_center_x = square.x + square.size / 2
+    square_center_y = square.y + square.size / 2
+    for other in smaller_squares:
+        other_center_x = other.x + other.size / 2
+        other_center_y = other.y + other.size / 2
+        dx = other_center_x - square_center_x
+        dy = other_center_y - square_center_y
+        distance = math.hypot(dx, dy)
+        if distance == 0:
+            continue
+        toward_x += dx / distance
+        toward_y += dy / distance
+    length = math.hypot(toward_x, toward_y)
+    if length == 0:
+        return
+    toward_x /= length
+    toward_y /= length
+    square.vx += toward_x * chase_strength
+    square.vy += toward_y * chase_strength
+    clamp_speed(square)`,
+                    usage: 'Called in update_squares() during the behavior phase for each square.',
+                    concept: 'Vector Math, Steering Behaviors, Normalization'
+                },
+                'handle_events': {
+                    title: 'handle_events() → bool',
+                    lines: '178-181',
+                    description: 'Checks for pygame events (e.g., window close). Returns False if user quits, True otherwise.',
+                    code: `def handle_events() -> bool:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return False
+    return True`,
+                    usage: 'Called at the start of each frame in run() to check for quit signal.',
+                    concept: 'Event Loop, User Input'
+                },
+                'update_squares': {
+                    title: 'update_squares(squares, width, height, delta_time) → List[Square]',
+                    lines: '189-230',
+                    description: 'Main simulation step. Orchestrates one frame with four clear phases: aging/rebirth, behavior detection and application, movement, and collision handling. Phase comments guide understanding.',
+                    code: `def update_squares(squares, width, height, delta_time):
+    updated_squares = []
+    for square in squares:
+        # Phase 1: Age and rebirth
+        square.age += delta_time
+        if square.age >= square.lifespan:
+            updated_squares.append(create_random_square())
+            continue
+        # Phase 2: Detect and apply behaviors
+        bigger = find_bigger_nearby_squares(square, squares, FLEE_RADIUS)
+        apply_flee_behavior(square, bigger, FLEE_STRENGTH * delta_time)
+        smaller = find_smaller_nearby_squares(square, squares, CHASE_RADIUS)
+        apply_chase_behavior(square, smaller, CHASE_STRENGTH * delta_time)
+        # Phase 3: Move
+        square.x += square.vx * delta_time
+        square.y += square.vy * delta_time
+        # Phase 4: Collisions
+        if square.x <= 0:
+            square.x = 0
+            square.vx *= -1
+        # ... more wall checks ...
+        updated_squares.append(square)
+    return updated_squares`,
+                    usage: 'Called once per frame in run(). Returns updated list of squares for the next frame.',
+                    concept: 'Game Loop Architecture, Delta Time, Simulation Phases'
+                },
+                'draw_scene': {
+                    title: 'draw_scene(screen: pygame.Surface, squares: List[Square]) → None',
+                    lines: '232-243',
+                    description: 'Renders all squares as white rectangles on a black background. Called once per frame to update the display.',
+                    code: `def draw_scene(screen, squares):
+    screen.fill((0, 0, 0))
+    for square in squares:
+        pygame.draw.rect(screen, (255, 255, 255),
+                         (int(square.x), int(square.y), square.size, square.size))`,
+                    usage: 'Called after update_squares() in run() to render the frame.',
+                    concept: 'Graphics Rendering, Game Loop'
+                },
+                'run': {
+                    title: 'run() → None',
+                    lines: '245-269',
+                    description: 'Entry point and main application loop. Initializes pygame, creates squares, runs the game loop with event handling, updating, and rendering.',
+                    code: `def run():
+    pygame.init()
+    try:
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Moving Squares - Life Span + Rebirth")
+        clock = pygame.time.Clock()
+        squares = create_squares(SQUARE_COUNT)
+        running = True
+        while running:
+            running = handle_events()
+            delta_time = clock.tick(FPS) / 1000.0
+            squares = update_squares(squares, SCREEN_WIDTH, SCREEN_HEIGHT, delta_time)
+            draw_scene(screen, squares)
+            pygame.display.flip()
+    finally:
+        pygame.quit()`,
+                    usage: 'Called if __name__ == "__main__" to start the simulation.',
+                    concept: 'Application Loop, Resource Management (try/finally)'
+                }
+            };
+
+            const detail = details[funcName];
+            if (!detail) return;
+
+            detailsDiv.innerHTML = `
+                <div style="border-top: 2px solid var(--primary-color); padding-top: 2rem; margin-top: 2rem;">
+                    <h3>${detail.title}</h3>
+                    <p><strong>Lines:</strong> ${detail.lines}</p>
+                    <p>${detail.description}</p>
+                    <h4 style="margin-top: 1rem; color: var(--secondary-color);">Code:</h4>
+                    <div class="code-block">${detail.code}</div>
+                    <h4 style="margin-top: 1rem; color: var(--secondary-color);">Usage:</h4>
+                    <p>${detail.usage}</p>
+                    <h4 style="margin-top: 1rem; color: var(--secondary-color);">Concepts:</h4>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        ${detail.concept.split(', ').map(c => `<span class="concept-badge">${c}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>
