@@ -56,3 +56,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 03-05-2026 21:28
 - **Prompt**: analyze this project and produce a light refactoring plan.
 
+### 03-05-2026 21:37
+- **Prompt**: Implement the refactoring plan in refactoring.plan.md.  Important requirements: - Keep everything in main.py. - Do not create new Python files. - Keep the code beginner-friendly. - Preserve the current gameplay behavior. - Move flee/chase radius and strength into top-level constants. - Reduce duplicate neighbor scanning logic without making it too advanced. - Add a small clamp_speed helper if useful. - Keep short comments only where they help explain the refactor. - Do not over-engineer the project.
+
