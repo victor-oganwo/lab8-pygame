@@ -334,3 +334,13 @@ You are expected to write files, not just analyze.
 - **Hook Version**: 1.02
 - **Date**: 03-05-2026 21:57
 - **Prompt**: Generate the architecture documents for this project.
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 03-05-2026 21:58
+- **User**: victor.oganwo@epita.fr
+- **Prompt**: Generate the architecture documents for this project.
+- **CoPilot Mode**: Agent
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: OFF
+- **Changes Made**: Regenerated the architecture documentation set in docs/architecture with updated system overview, runtime behavior, quality attributes, and README guidance for the refactored pygame simulation.
+- **Context and Reasons for Changes**: The user requested fresh architecture documents for the current project state, so the docs were updated to match the refactored main.py implementation and its current behavior.
