@@ -35,3 +35,7 @@ I also moved the expected speed calculation before the update, because the test 
 For animated growth, I changed eating so the predator does not instantly jump to the bigger size. Instead, it stores a `target_size` and a `growth_rate`, then each update moves the current size toward the target. I used `GROWTH_SPEED = 0.5` because the assignment said 500 ms, and that made the idea easy to connect to the code.
 
 This version is intentionally simple. It does not do fancy easing or special visual effects, and if a square eats again while already growing it just updates the target size and keeps going. I think that is good enough for this exam because the main idea is visible: growth happens over time instead of all at once.
+
+## Exercise 10
+
+For the boids screen wrapping, I used the same basic idea as the square wrapping from earlier. If a boid goes past the left side, it appears on the right, and the same thing happens for top and bottom. I did not change the velocity because the spec says the speed should stay unchanged. I also made wrap the default wall behavior so I can see this feature right away when running the boids file.
