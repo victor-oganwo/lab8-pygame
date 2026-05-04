@@ -24,7 +24,7 @@ class Config:
     SEPARATION_STEER_STRENGTH: float = 5 # How strongly boids steer away from neighbors (vector-based)
 
     # Alignment is the behavior where boids steer toward the average direction of nearby boids
-    ALIGNEMENT_ON: bool = False  # Toggle alignment behavior on/off
+    ALIGNEMENT_ON: bool = True  # Toggle alignment behavior on/off
     ALIGNMENT_DISTANCE: int = BOID_SIZE * 100  # Distance within which to consider neighbors for alignment
     ALIGNEMENT_STEER_STRENGTH: float = .8  # How strongly boids steer toward average direction of neighbors (vector-based)
 
@@ -53,7 +53,18 @@ class Boid:
 
     # TODO: Implement speed clamping to ensure boids don't exceed max speed
     def _clampSpeed(self) -> None:
-        pass
+        speed: float = math.hypot(self.vx, self.vy)
+        if speed == 0:
+            return
+
+        if speed > config.BOID_SPEED_MAX:
+            scale: float = config.BOID_SPEED_MAX / speed
+            self.vx *= scale
+            self.vy *= scale
+        elif speed < config.BOID_SPEED_MIN:
+            scale = config.BOID_SPEED_MIN / speed
+            self.vx *= scale
+            self.vy *= scale
 
     # TODO: Implement Screen Wrapping
     # Screen wrapping: if a boid goes off one edge of the screen, 
@@ -122,6 +133,24 @@ class Boid:
     # and subtract the current boid's velocity to get the alignment steering force.
     def _alignment(self, boids: List['Boid']) -> pygame.Vector2:
         steer : pygame.Vector2 = pygame.Vector2(0, 0)
+        count: int = 0
+
+        for other in boids:
+            if other is self:
+                continue
+
+            distance: float = math.hypot(self.x - other.x, self.y - other.y)
+            if distance > config.ALIGNMENT_DISTANCE:
+                continue
+
+            steer += pygame.Vector2(other.vx, other.vy)
+            count += 1
+
+        if count == 0:
+            return steer
+
+        average_velocity: pygame.Vector2 = steer / count
+        steer = average_velocity - pygame.Vector2(self.vx, self.vy)
         return steer
     
     # Cohesion: steer toward the average position of nearby boids: 
@@ -153,6 +182,13 @@ class Boid:
             separation: pygame.Vector2 = self._separation(boids)
             self.vx += separation.x * config.SEPARATION_STEER_STRENGTH
             self.vy += separation.y * config.SEPARATION_STEER_STRENGTH
+
+        if config.ALIGNEMENT_ON:
+            alignment: pygame.Vector2 = self._alignment(boids)
+            self.vx += alignment.x * config.ALIGNEMENT_STEER_STRENGTH
+            self.vy += alignment.y * config.ALIGNEMENT_STEER_STRENGTH
+
+        self._clampSpeed()
 
         # Update the boid's position based on its velocity.
         self.x += self.vx * dt_seconds

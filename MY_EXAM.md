@@ -59,3 +59,8 @@ For random steer, I changed the boid's angle by a small random amount instead of
 ## Exercise 12
 
 For separation, I loop through the nearby boids and make a vector pointing away from each one. I divide by distance so a really close boid pushes harder than one that is only barely inside the separation range. Then in `update`, I add that steering vector to the velocity when separation is turned on. I turned separation on by default so I can actually see the behavior when the program starts.
+
+## Exercise 13
+
+For alignment, I look at nearby boids and add up their velocity vectors. Then I divide by how many neighbors I found to get the average direction/speed. The steering value is the average velocity minus my current velocity, so the boid slowly turns toward what the local group is doing instead of instantly copying them.
+I also filled in the speed clamp because separation and alignment can keep adding to the velocity. This felt like a bug fix, not extra polish, because otherwise the boids could get faster than the config limits.
