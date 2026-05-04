@@ -56,6 +56,13 @@ def distance_between(a: Square, b: Square) -> float:
     return math.hypot(b.x - a.x, b.y - a.y)
 
 
+def check_collision(a: Square, b: Square) -> bool:
+    # I used pygame.Rect here because my squares are already rectangles on screen.
+    rect_a = pygame.Rect(int(a.x), int(a.y), a.size, a.size)
+    rect_b = pygame.Rect(int(b.x), int(b.y), b.size, b.size)
+    return rect_a.colliderect(rect_b)
+
+
 def compute_max_speed(size: int) -> float:
     size_range = MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
     if size_range == 0:
