@@ -4,6 +4,18 @@
 
 Initialized exam notes file.
 
+## Exercise 1
+
+I changed the square creation so the program starts with a fixed mix of sizes: 5 squares of size 25, 10 squares of size 10, and 30 squares of size 4. I used a list of tuples so each group is easy to read and change.
+
+## Exercise 2
+
+I changed the respawn logic so a square keeps the same size when it dies and respawns. This helps preserve the size mix instead of creating a completely random size each time.
+
+## Exercise 3
+
+I replaced wall bouncing with screen wrapping. When a square leaves one side of the screen, it appears on the opposite side. I kept the velocity unchanged because the requirement says the speed should stay the same.
+
 ## Exercise 4
 
 I added a `check_collision` function in `main.py`. Since the shapes in my program are squares and Pygame already has rectangle collision with `colliderect`, I used that instead of writing distance math. This feels simpler and matches how I draw the squares.
@@ -43,3 +55,7 @@ For the boids screen wrapping, I used the same basic idea as the square wrapping
 ## Exercise 11
 
 For random steer, I changed the boid's angle by a small random amount instead of directly adding random numbers to `vx` and `vy`. I think this is better because the boid keeps about the same speed, but the direction wiggles a little bit and looks more natural. I used the `spread` value as the maximum left or right turn amount.
+
+## Exercise 12
+
+For separation, I loop through the nearby boids and make a vector pointing away from each one. I divide by distance so a really close boid pushes harder than one that is only barely inside the separation range. Then in `update`, I add that steering vector to the velocity when separation is turned on. I turned separation on by default so I can actually see the behavior when the program starts.

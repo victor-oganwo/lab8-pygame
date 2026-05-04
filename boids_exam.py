@@ -19,7 +19,7 @@ class Config:
     # You may have to adjust these parameters to get good results, but they should be a good starting point for tuning the behaviors.
 
     # Separation is the behavior where boids steer away from nearby boids to avoid crowding
-    SEPARATION_ON: bool = False  # Toggle separation behavior on/off
+    SEPARATION_ON: bool = True  # Toggle separation behavior on/off
     SEPARATION_DISTANCE: int = BOID_SIZE * 15  # Minimum distance to maintain from other boids
     SEPARATION_STEER_STRENGTH: float = 5 # How strongly boids steer away from neighbors (vector-based)
 
@@ -101,6 +101,18 @@ class Boid:
     # Then sum these vectors to get the overall separation steering force.
     def _separation(self, boids: List['Boid']) -> pygame.Vector2:
         steer : pygame.Vector2 = pygame.Vector2(0, 0)
+        for other in boids:
+            if other is self:
+                continue
+
+            distance: float = math.hypot(self.x - other.x, self.y - other.y)
+            if distance == 0 or distance > config.SEPARATION_DISTANCE:
+                continue
+
+            # Close boids push harder, so crowded groups spread out faster.
+            away: pygame.Vector2 = pygame.Vector2(self.x - other.x, self.y - other.y)
+            steer += away.normalize() / distance
+
         return steer
 
     # Alignment: steer toward the average direction of nearby boids: 
@@ -136,6 +148,11 @@ class Boid:
         # using the defined strengths (*_STEER_STRENGTH) for each behavior.
 
         self._random_steer()
+
+        if config.SEPARATION_ON:
+            separation: pygame.Vector2 = self._separation(boids)
+            self.vx += separation.x * config.SEPARATION_STEER_STRENGTH
+            self.vy += separation.y * config.SEPARATION_STEER_STRENGTH
 
         # Update the boid's position based on its velocity.
         self.x += self.vx * dt_seconds
