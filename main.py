@@ -20,7 +20,7 @@ import pygame
 SCREEN_WIDTH: int = 800
 SCREEN_HEIGHT: int = 600
 FPS: int = 60
-MIXED_SQUARE_SIZES: list[tuple[int, int]] = [
+SQUARE_MIX: list[tuple[int, int]] = [
     (5, 25),
     (10, 10),
     (30, 4),
@@ -94,7 +94,7 @@ def create_random_square(size: int | None = None) -> Square:
 def create_squares() -> List[Square]:
     squares: List[Square] = []
 
-    for count, size in MIXED_SQUARE_SIZES:
+    for count, size in SQUARE_MIX:
         for _ in range(count):
             squares.append(create_random_square(size))
 
@@ -199,6 +199,7 @@ def clamp_speed(square: Square) -> None:
         square.vx *= scale
         square.vy *= scale
 
+
 def apply_chase_behavior(
     square: Square,
     smaller_squares: List[Square],
@@ -279,20 +280,16 @@ def update_squares(
         square.x += square.vx * delta_time
         square.y += square.vy * delta_time
 
-        # Phase 4: Handle boundary collisions and bounce off walls.
-        if square.x <= 0:
-            square.x = 0
-            square.vx *= -1
-        elif square.x + square.size >= width:
-            square.x = width - square.size
-            square.vx *= -1
+        # Phase 4: Wrap around screen edges without changing velocity.
+        if square.x + square.size < 0:
+            square.x = width
+        elif square.x > width:
+            square.x = -square.size
 
-        if square.y <= 0:
-            square.y = 0
-            square.vy *= -1
-        elif square.y + square.size >= height:
-            square.y = height - square.size
-            square.vy *= -1
+        if square.y + square.size < 0:
+            square.y = height
+        elif square.y > height:
+            square.y = -square.size
 
         updated_squares.append(square)
 
@@ -314,7 +311,7 @@ def run() -> None:
     pygame.init()
     try:
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Moving Squares - Life Span + Rebirth")
+        pygame.display.set_caption("Moving Squares - Mixed Sizes + Wrapping")
         clock = pygame.time.Clock()
         squares = create_squares()
 
