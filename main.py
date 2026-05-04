@@ -38,6 +38,7 @@ MAX_GROWN_SIZE: int = 80
 GLOBAL_MAX_SPEED: float = 120.0
 TRAILS_LENGTH: int = 30
 TRAIL_COLOR: tuple[int, int, int] = (130, 130, 130)
+GROWTH_SPEED: float = 0.5
 
 TEST_MODE_ON: bool = False
 TEST_SPEED_TOLERANCE: float = 0.01
@@ -52,7 +53,9 @@ class Square:
     y: float
     vx: float
     vy: float
-    size: int
+    size: float
+    target_size: float
+    growth_rate: float
     max_speed: float
     age: float
     lifespan: float
@@ -65,8 +68,8 @@ def distance_between(a: Square, b: Square) -> float:
 
 def check_collision(a: Square, b: Square) -> bool:
     # I used pygame.Rect here because my squares are already rectangles on screen.
-    rect_a = pygame.Rect(int(a.x), int(a.y), a.size, a.size)
-    rect_b = pygame.Rect(int(b.x), int(b.y), b.size, b.size)
+    rect_a = pygame.Rect(int(a.x), int(a.y), int(a.size), int(a.size))
+    rect_b = pygame.Rect(int(b.x), int(b.y), int(b.size), int(b.size))
     return rect_a.colliderect(rect_b)
 
 
@@ -85,15 +88,20 @@ def handle_eating(squares: List[Square]) -> set[int]:
             bigger = other if smaller is square else square
             eaten_ids.add(id(smaller))
 
-            # I made growth half the prey size so it is visible but not too fast.
-            bigger.size = min(MAX_GROWN_SIZE, bigger.size + max(1, smaller.size // 2))
-            bigger.max_speed = compute_max_speed(bigger.size)
+            # I made growth half the prey size, but now it animates toward a target.
+            new_target_size = min(
+                MAX_GROWN_SIZE,
+                bigger.target_size + max(1, int(smaller.size) // 2),
+            )
+            bigger.target_size = new_target_size
+            bigger.growth_rate = (bigger.target_size - bigger.size) / GROWTH_SPEED
+            bigger.max_speed = compute_max_speed(bigger.target_size)
             clamp_speed(bigger)
 
     return eaten_ids
 
 
-def compute_max_speed(size: int) -> float:
+def compute_max_speed(size: float) -> float:
     size_range = MAX_GROWN_SIZE - MIN_SQUARE_SIZE
     if size_range == 0:
         return GLOBAL_MAX_SPEED
@@ -121,7 +129,9 @@ def create_random_square(size: int | None = None) -> Square:
         y=float(y),
         vx=float(vx),
         vy=float(vy),
-        size=size,
+        size=float(size),
+        target_size=float(size),
+        growth_rate=0.0,
         max_speed=max_speed,
         age=0.0,
         lifespan=lifespan,
@@ -247,6 +257,15 @@ def record_trail_point(square: Square) -> None:
         square.trail.pop(0)
 
 
+def apply_growth_animation(square: Square, delta_time: float) -> None:
+    if square.size >= square.target_size:
+        square.size = square.target_size
+        square.growth_rate = 0.0
+        return
+
+    square.size = min(square.target_size, square.size + square.growth_rate * delta_time)
+
+
 def apply_chase_behavior(
     square: Square,
     smaller_squares: List[Square],
@@ -313,8 +332,10 @@ def update_squares(
         # Phase 1: Age and check for lifespan expiration.
         square.age += delta_time
         if square.age >= square.lifespan:
-            updated_squares.append(create_random_square(square.size))
+            updated_squares.append(create_random_square(int(round(square.size))))
             continue
+
+        apply_growth_animation(square, delta_time)
 
         # Phase 2: Detect neighbors and apply steering behaviors.
         bigger_squares = find_bigger_nearby_squares(square, squares, FLEE_RADIUS)
@@ -357,7 +378,7 @@ def update_squares(
 
     # I respawn eaten squares with their same size so the starting mix stays balanced.
     return [
-        create_random_square(square.size) if id(square) in eaten_ids else square
+        create_random_square(int(round(square.size))) if id(square) in eaten_ids else square
         for square in updated_squares
     ]
 
@@ -376,7 +397,7 @@ def draw_scene(screen: pygame.Surface, squares: List[Square]) -> None:
         pygame.draw.rect(
             screen,
             (255, 255, 255),
-            (int(square.x), int(square.y), square.size, square.size),
+            (int(square.x), int(square.y), int(square.size), int(square.size)),
         )
 
 
@@ -388,6 +409,8 @@ def run_speed_test() -> None:
         vx=60.0,
         vy=80.0,
         size=10,
+        target_size=10,
+        growth_rate=0.0,
         max_speed=100.0,
         age=0.0,
         lifespan=999.0,

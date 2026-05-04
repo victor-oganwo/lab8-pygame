@@ -29,3 +29,9 @@ For the speed test I made a simple `TEST_MODE_ON` global variable. If I turn it 
 This is not a perfect test for the whole simulation. It does not test chasing, fleeing, eating, or wrapping all together. My assumption is that this exercise mostly wants proof that `position += velocity * delta_time` is working, so I tested that part directly. To make it more complete, I would probably separate the movement code more and write several tests for movement, wrapping, and behavior forces.
 If I had more time, I would make the test suite stronger, but for now this covers the main speed calculation task.
 I also moved the expected speed calculation before the update, because the test should compare against the velocity I started with, not anything that might change during the update later.
+
+## Exercise 9
+
+For animated growth, I changed eating so the predator does not instantly jump to the bigger size. Instead, it stores a `target_size` and a `growth_rate`, then each update moves the current size toward the target. I used `GROWTH_SPEED = 0.5` because the assignment said 500 ms, and that made the idea easy to connect to the code.
+
+This version is intentionally simple. It does not do fancy easing or special visual effects, and if a square eats again while already growing it just updates the target size and keeps going. I think that is good enough for this exam because the main idea is visible: growth happens over time instead of all at once.
