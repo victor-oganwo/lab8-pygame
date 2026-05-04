@@ -63,6 +63,23 @@ def check_collision(a: Square, b: Square) -> bool:
     return rect_a.colliderect(rect_b)
 
 
+def find_eaten_square_ids(squares: List[Square]) -> set[int]:
+    eaten_ids: set[int] = set()
+
+    for index, square in enumerate(squares):
+        for other in squares[index + 1:]:
+            if square.size == other.size:
+                continue
+            if not check_collision(square, other):
+                continue
+
+            # The smaller square loses the collision and gets respawned.
+            smaller = square if square.size < other.size else other
+            eaten_ids.add(id(smaller))
+
+    return eaten_ids
+
+
 def compute_max_speed(size: int) -> float:
     size_range = MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
     if size_range == 0:
@@ -300,7 +317,15 @@ def update_squares(
 
         updated_squares.append(square)
 
-    return updated_squares
+    eaten_ids = find_eaten_square_ids(updated_squares)
+    if not eaten_ids:
+        return updated_squares
+
+    # I respawn eaten squares with their same size so the starting mix stays balanced.
+    return [
+        create_random_square(square.size) if id(square) in eaten_ids else square
+        for square in updated_squares
+    ]
 
 
 def draw_scene(screen: pygame.Surface, squares: List[Square]) -> None:
