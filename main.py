@@ -265,7 +265,7 @@ def update_squares(
         # Phase 1: Age and check for lifespan expiration.
         square.age += delta_time
         if square.age >= square.lifespan:
-            updated_squares.append(create_random_square())
+            updated_squares.append(create_random_square(square.size))
             continue
 
         # Phase 2: Detect neighbors and apply steering behaviors.
