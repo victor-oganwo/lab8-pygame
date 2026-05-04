@@ -36,6 +36,8 @@ MIN_SQUARE_SIZE: int = 4
 MAX_SQUARE_SIZE: int = 40
 MAX_GROWN_SIZE: int = 80
 GLOBAL_MAX_SPEED: float = 120.0
+TRAILS_LENGTH: int = 30
+TRAIL_COLOR: tuple[int, int, int] = (130, 130, 130)
 
 MIN_LIFESPAN: float = 30.0
 MAX_LIFESPAN: float = 180.0
@@ -51,6 +53,7 @@ class Square:
     max_speed: float
     age: float
     lifespan: float
+    trail: list[tuple[float, float]]
 
 
 def distance_between(a: Square, b: Square) -> float:
@@ -82,6 +85,7 @@ def handle_eating(squares: List[Square]) -> set[int]:
             # I made growth half the prey size so it is visible but not too fast.
             bigger.size = min(MAX_GROWN_SIZE, bigger.size + max(1, smaller.size // 2))
             bigger.max_speed = compute_max_speed(bigger.size)
+            clamp_speed(bigger)
 
     return eaten_ids
 
@@ -91,7 +95,7 @@ def compute_max_speed(size: int) -> float:
     if size_range == 0:
         return GLOBAL_MAX_SPEED
 
-    normalized = min(1.0, (size - MIN_SQUARE_SIZE) / size_range)
+    normalized = max(0.0, min(1.0, (size - MIN_SQUARE_SIZE) / size_range))
     return GLOBAL_MAX_SPEED * (1.0 - 0.6 * normalized)
 
 
@@ -118,6 +122,7 @@ def create_random_square(size: int | None = None) -> Square:
         max_speed=max_speed,
         age=0.0,
         lifespan=lifespan,
+        trail=[],
     )
 
 
@@ -230,6 +235,15 @@ def clamp_speed(square: Square) -> None:
         square.vy *= scale
 
 
+def record_trail_point(square: Square) -> None:
+    # I store the center point so the trail follows the square and not just its corner.
+    center = (square.x + square.size / 2, square.y + square.size / 2)
+    square.trail.append(center)
+
+    if len(square.trail) > TRAILS_LENGTH:
+        square.trail.pop(0)
+
+
 def apply_chase_behavior(
     square: Square,
     smaller_squares: List[Square],
@@ -311,15 +325,26 @@ def update_squares(
         square.y += square.vy * delta_time
 
         # Phase 4: Wrap around screen edges without changing velocity.
+        wrapped = False
         if square.x + square.size < 0:
             square.x = width
+            wrapped = True
         elif square.x > width:
             square.x = -square.size
+            wrapped = True
 
         if square.y + square.size < 0:
             square.y = height
+            wrapped = True
         elif square.y > height:
             square.y = -square.size
+            wrapped = True
+
+        if wrapped:
+            # Clearing this avoids one long trail line across the screen after wrapping.
+            square.trail.clear()
+
+        record_trail_point(square)
 
         updated_squares.append(square)
 
@@ -336,6 +361,13 @@ def update_squares(
 
 def draw_scene(screen: pygame.Surface, squares: List[Square]) -> None:
     screen.fill((0, 0, 0))
+
+    for square in squares:
+        if len(square.trail) < 2:
+            continue
+
+        points = [(int(x), int(y)) for x, y in square.trail]
+        pygame.draw.lines(screen, TRAIL_COLOR, False, points, 2)
 
     for square in squares:
         pygame.draw.rect(
