@@ -64,3 +64,17 @@ For separation, I loop through the nearby boids and make a vector pointing away 
 
 For alignment, I look at nearby boids and add up their velocity vectors. Then I divide by how many neighbors I found to get the average direction/speed. The steering value is the average velocity minus my current velocity, so the boid slowly turns toward what the local group is doing instead of instantly copying them.
 I also filled in the speed clamp because separation and alignment can keep adding to the velocity. This felt like a bug fix, not extra polish, because otherwise the boids could get faster than the config limits.
+
+## Exercise 14
+
+For cohesion, I average the positions of nearby boids to find the local center of the group. Then I subtract my boid's current position from that center point, which gives a vector pointing toward the group. This should help keep the boids from spreading out forever, especially when it works together with separation and alignment.
+
+## Exercise 15
+
+For a S.A.C. flocking test, I would measure whether nearby boids start moving in a more similar direction after separation, alignment, and cohesion run for a little while. The easiest number for me to track is heading agreement: compare each boid's direction to the average direction of the group. If the score goes up, that suggests the boids are starting to flock instead of all going random ways.
+
+This is not the only thing flocking means. A better test could also check that boids do not overlap too much and that they stay close enough to count as a group. For this exam, I think heading agreement is a clear first metric because alignment is one of the main rules and it is easy to print and understand.
+
+## Exercise 16
+
+I implemented the S.A.C. test using a small controlled group of boids with different starting directions. The test runs the boids for 60 frames and compares the heading agreement before and after. It passes if the ending heading agreement is higher. I know this does not prove every visual part of flocking, but it gives me a simple check that the combined rules are pushing the group toward shared movement.

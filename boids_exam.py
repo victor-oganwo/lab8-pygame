@@ -29,12 +29,14 @@ class Config:
     ALIGNEMENT_STEER_STRENGTH: float = .8  # How strongly boids steer toward average direction of neighbors (vector-based)
 
     # Cohesion is the behavior where boids steer toward the average position of nearby boids
-    COHESION_ON: bool = False  # Toggle cohesion behavior on/off
+    COHESION_ON: bool = True  # Toggle cohesion behavior on/off
     COHESION_DISTANCE: int = BOID_SIZE * 50  # Distance within which to consider neighbors for cohesion
     COHESION_STEER_STRENGTH: float = 5  # How strongly boids steer toward center of mass of neighbors (vector-based)
 
     # Wall warp or bounce
     WALL_BEHAVIOR: str = "wrap"  # "wrap" or "bounce"
+
+    SAC_TEST_ON: bool = False
 
 
 
@@ -160,6 +162,24 @@ class Boid:
     # and subtract the current boid's position to get the cohesion steering force.
     def _cohesion(self, boids: List['Boid']) -> pygame.Vector2:
         steer : pygame.Vector2 = pygame.Vector2(0, 0)
+        count: int = 0
+
+        for other in boids:
+            if other is self:
+                continue
+
+            distance: float = math.hypot(self.x - other.x, self.y - other.y)
+            if distance > config.COHESION_DISTANCE:
+                continue
+
+            steer += pygame.Vector2(other.x, other.y)
+            count += 1
+
+        if count == 0:
+            return steer
+
+        average_position: pygame.Vector2 = steer / count
+        steer = average_position - pygame.Vector2(self.x, self.y)
         return steer
         
 
@@ -187,6 +207,11 @@ class Boid:
             alignment: pygame.Vector2 = self._alignment(boids)
             self.vx += alignment.x * config.ALIGNEMENT_STEER_STRENGTH
             self.vy += alignment.y * config.ALIGNEMENT_STEER_STRENGTH
+
+        if config.COHESION_ON:
+            cohesion: pygame.Vector2 = self._cohesion(boids)
+            self.vx += cohesion.x * config.COHESION_STEER_STRENGTH
+            self.vy += cohesion.y * config.COHESION_STEER_STRENGTH
 
         self._clampSpeed()
 
@@ -232,8 +257,65 @@ def draw_hud(screen: pygame.Surface, font: pygame.font.Font, config: Config, fps
     screen.blit(img, (10, 70))
 
 
+def average_heading_agreement(boids: List[Boid]) -> float:
+    average_velocity: pygame.Vector2 = pygame.Vector2(0, 0)
+    for boid in boids:
+        average_velocity += pygame.Vector2(boid.vx, boid.vy)
+
+    if average_velocity.length() == 0:
+        return 0.0
+
+    average_direction: pygame.Vector2 = average_velocity.normalize()
+    total_agreement: float = 0.0
+
+    for boid in boids:
+        velocity: pygame.Vector2 = pygame.Vector2(boid.vx, boid.vy)
+        if velocity.length() == 0:
+            continue
+        total_agreement += velocity.normalize().dot(average_direction)
+
+    return total_agreement / len(boids)
+
+
+def make_test_boid(x: float, y: float, vx: float, vy: float) -> Boid:
+    boid = Boid()
+    boid.x = x
+    boid.y = y
+    boid.vx = vx
+    boid.vy = vy
+    return boid
+
+
+def run_sac_test() -> None:
+    random.seed(7)
+    boids: List[Boid] = [
+        make_test_boid(360, 280, 240, 0),
+        make_test_boid(375, 285, 0, 240),
+        make_test_boid(390, 275, -220, 40),
+        make_test_boid(405, 290, 40, -220),
+    ]
+
+    starting_agreement: float = average_heading_agreement(boids)
+
+    for _ in range(60):
+        for boid in boids:
+            boid.update(boids, 16)
+
+    ending_agreement: float = average_heading_agreement(boids)
+
+    print(f"SAC test starting heading agreement: {starting_agreement:.3f}")
+    print(f"SAC test ending heading agreement: {ending_agreement:.3f}")
+    if ending_agreement > starting_agreement:
+        print("SAC test passed")
+    else:
+        print("SAC test needs tuning")
+
+
 # Main function to run the simulation
 def run_simulation() -> None:
+    if config.SAC_TEST_ON:
+        run_sac_test()
+        return
 
     # Initialize Pygame and create screen, clock, and font
     pygame.init()
