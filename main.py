@@ -20,7 +20,11 @@ import pygame
 SCREEN_WIDTH: int = 800
 SCREEN_HEIGHT: int = 600
 FPS: int = 60
-SQUARE_COUNT: int = 20
+MIXED_SQUARE_SIZES: list[tuple[int, int]] = [
+    (5, 25),
+    (10, 10),
+    (30, 4),
+]
 
 # Behavior constants: control how far squares detect neighbors and how strongly they react.
 FLEE_RADIUS: float = 150.0
@@ -28,7 +32,7 @@ FLEE_STRENGTH: float = 80.0
 CHASE_RADIUS: float = 200.0
 CHASE_STRENGTH: float = 60.0
 
-MIN_SQUARE_SIZE: int = 10
+MIN_SQUARE_SIZE: int = 4
 MAX_SQUARE_SIZE: int = 40
 GLOBAL_MAX_SPEED: float = 120.0
 
@@ -61,8 +65,10 @@ def compute_max_speed(size: int) -> float:
     return GLOBAL_MAX_SPEED * (1.0 - 0.6 * normalized)
 
 
-def create_random_square() -> Square:
-    size = random.randint(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE)
+def create_random_square(size: int | None = None) -> Square:
+    if size is None:
+        size = random.randint(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE)
+
     max_speed = compute_max_speed(size)
 
     x = random.randint(0, SCREEN_WIDTH - size)
@@ -85,8 +91,14 @@ def create_random_square() -> Square:
     )
 
 
-def create_squares(count: int) -> List[Square]:
-    return [create_random_square() for _ in range(count)]
+def create_squares() -> List[Square]:
+    squares: List[Square] = []
+
+    for count, size in MIXED_SQUARE_SIZES:
+        for _ in range(count):
+            squares.append(create_random_square(size))
+
+    return squares
 
 
 def filter_nearby_squares(
@@ -304,7 +316,7 @@ def run() -> None:
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Moving Squares - Life Span + Rebirth")
         clock = pygame.time.Clock()
-        squares = create_squares(SQUARE_COUNT)
+        squares = create_squares()
 
         running = True
         while running:
