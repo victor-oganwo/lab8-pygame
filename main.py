@@ -34,6 +34,7 @@ CHASE_STRENGTH: float = 60.0
 
 MIN_SQUARE_SIZE: int = 4
 MAX_SQUARE_SIZE: int = 40
+MAX_GROWN_SIZE: int = 80
 GLOBAL_MAX_SPEED: float = 120.0
 
 MIN_LIFESPAN: float = 30.0
@@ -63,7 +64,7 @@ def check_collision(a: Square, b: Square) -> bool:
     return rect_a.colliderect(rect_b)
 
 
-def find_eaten_square_ids(squares: List[Square]) -> set[int]:
+def handle_eating(squares: List[Square]) -> set[int]:
     eaten_ids: set[int] = set()
 
     for index, square in enumerate(squares):
@@ -75,17 +76,22 @@ def find_eaten_square_ids(squares: List[Square]) -> set[int]:
 
             # The smaller square loses the collision and gets respawned.
             smaller = square if square.size < other.size else other
+            bigger = other if smaller is square else square
             eaten_ids.add(id(smaller))
+
+            # I made growth half the prey size so it is visible but not too fast.
+            bigger.size = min(MAX_GROWN_SIZE, bigger.size + max(1, smaller.size // 2))
+            bigger.max_speed = compute_max_speed(bigger.size)
 
     return eaten_ids
 
 
 def compute_max_speed(size: int) -> float:
-    size_range = MAX_SQUARE_SIZE - MIN_SQUARE_SIZE
+    size_range = MAX_GROWN_SIZE - MIN_SQUARE_SIZE
     if size_range == 0:
         return GLOBAL_MAX_SPEED
 
-    normalized = (size - MIN_SQUARE_SIZE) / size_range
+    normalized = min(1.0, (size - MIN_SQUARE_SIZE) / size_range)
     return GLOBAL_MAX_SPEED * (1.0 - 0.6 * normalized)
 
 
@@ -317,7 +323,7 @@ def update_squares(
 
         updated_squares.append(square)
 
-    eaten_ids = find_eaten_square_ids(updated_squares)
+    eaten_ids = handle_eating(updated_squares)
     if not eaten_ids:
         return updated_squares
 
