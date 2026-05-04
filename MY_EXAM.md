@@ -39,3 +39,7 @@ This version is intentionally simple. It does not do fancy easing or special vis
 ## Exercise 10
 
 For the boids screen wrapping, I used the same basic idea as the square wrapping from earlier. If a boid goes past the left side, it appears on the right, and the same thing happens for top and bottom. I did not change the velocity because the spec says the speed should stay unchanged. I also made wrap the default wall behavior so I can see this feature right away when running the boids file.
+
+## Exercise 11
+
+For random steer, I changed the boid's angle by a small random amount instead of directly adding random numbers to `vx` and `vy`. I think this is better because the boid keeps about the same speed, but the direction wiggles a little bit and looks more natural. I used the `spread` value as the maximum left or right turn amount.
