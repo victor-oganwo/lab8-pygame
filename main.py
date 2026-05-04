@@ -39,6 +39,9 @@ GLOBAL_MAX_SPEED: float = 120.0
 TRAILS_LENGTH: int = 30
 TRAIL_COLOR: tuple[int, int, int] = (130, 130, 130)
 
+TEST_MODE_ON: bool = False
+TEST_SPEED_TOLERANCE: float = 0.01
+
 MIN_LIFESPAN: float = 30.0
 MAX_LIFESPAN: float = 180.0
 
@@ -377,7 +380,39 @@ def draw_scene(screen: pygame.Surface, squares: List[Square]) -> None:
         )
 
 
+def run_speed_test() -> None:
+    # This is a basic sanity test, not a full physics test.
+    test_square = Square(
+        x=100.0,
+        y=100.0,
+        vx=60.0,
+        vy=80.0,
+        size=10,
+        max_speed=100.0,
+        age=0.0,
+        lifespan=999.0,
+        trail=[],
+    )
+    start_x = test_square.x
+    start_y = test_square.y
+    expected_speed = math.hypot(test_square.vx, test_square.vy)
+
+    updated = update_squares([test_square], SCREEN_WIDTH, SCREEN_HEIGHT, 1.0)
+    moved_square = updated[0]
+
+    distance_moved = math.hypot(moved_square.x - start_x, moved_square.y - start_y)
+
+    if abs(distance_moved - expected_speed) <= TEST_SPEED_TOLERANCE:
+        print("Speed test passed")
+    else:
+        print(f"Speed test failed: expected {expected_speed}, got {distance_moved}")
+
+
 def run() -> None:
+    if TEST_MODE_ON:
+        run_speed_test()
+        return
+
     pygame.init()
     try:
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
