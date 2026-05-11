@@ -77,3 +77,6 @@ Automatically captured prompt log. Entries are appended in chronological order (
 ### 12-05-2026 00:17
 - **Prompt**: Can you transpile this project into javascript?
 
+### 12-05-2026 00:30
+- **Prompt**: This is the Web API / Gemini lab. The homework says you need to clone the lab 14 repo and make sure you can run:  country-webapi.py google-genai.py  The PDF says the repo is:  git clone https://github.com/bcs-s2-2026/lab14-web-google-nvidia-api.git  Then enter it:  cd lab14-web-google-nvidia-api  Create and activate venv on Windows:  python -m venv .venv .venv\Scripts\activate  Install requirements:  pip install -r requirements.txt  Then create .env:  copy .env.example .env  Open .env and put your Google API key:  GOOGLE_API_KEY="your_actual_api_key_here"  The slides say .env should not be committed and your API key must stay private. can u help me w all these
+

@@ -374,3 +374,8 @@ You are expected to write files, not just analyze.
 - **Socratic Mode**: ON
 - **Changes Made**: Created web/index.html as a standalone Vanilla JavaScript and HTML5 Canvas port, plus web/js-port.md and web/js-port-validation.md for mapping and checks.
 - **Context and Reasons for Changes**: The user requested a JavaScript transpilation of the Pygame project, so the simulation was ported into a browser-ready single-file implementation that preserves the Python update order and behavior.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 12-05-2026 00:30
+- **Prompt**: This is the Web API / Gemini lab. The homework says you need to clone the lab 14 repo and make sure you can run:  country-webapi.py google-genai.py  The PDF says the repo is:  git clone https://github.com/bcs-s2-2026/lab14-web-google-nvidia-api.git  Then enter it:  cd lab14-web-google-nvidia-api  Create and activate venv on Windows:  python -m venv .venv .venv\Scripts\activate  Install requirements:  pip install -r requirements.txt  Then create .env:  copy .env.example .env  Open .env and put your Google API key:  GOOGLE_API_KEY="your_actual_api_key_here"  The slides say .env should not be committed and your API key must stay private. can u help me w all these
