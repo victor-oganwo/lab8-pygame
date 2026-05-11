@@ -77,7 +77,7 @@ def handle_eating(squares: List[Square]) -> set[int]:
     eaten_ids: set[int] = set()
 
     for index, square in enumerate(squares):
-        for other in squares[index + 1:]:
+        for other in squares[index + 1 :]:
             if square.size == other.size:
                 continue
             if not check_collision(square, other):
@@ -378,7 +378,11 @@ def update_squares(
 
     # I respawn eaten squares with their same size so the starting mix stays balanced.
     return [
-        create_random_square(int(round(square.size))) if id(square) in eaten_ids else square
+        (
+            create_random_square(int(round(square.size)))
+            if id(square) in eaten_ids
+            else square
+        )
         for square in updated_squares
     ]
 

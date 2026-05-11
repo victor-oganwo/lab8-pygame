@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Squares - JavaScript Port</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #091018;
+            --panel: #111b27;
+            --panel-2: #162234;
+            --text: #e8edf5;
+            --muted: #9fb0c5;
+            --accent: #8bc4ff;
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top, rgba(139, 196, 255, 0.16), transparent 34%),
+                linear-gradient(180deg, #08101a 0%, #05080d 100%);
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .app {
+            width: min(100%, 920px);
+            display: grid;
+            gap: 16px;
+        }
+
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(17, 27, 39, 0.88);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            letter-spacing: 0.02em;
+        }
+
+        .header p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .badge {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(139, 196, 255, 0.12);
+            color: var(--accent);
+            border: 1px solid rgba(139, 196, 255, 0.22);
+        }
+
+        .canvas-shell {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(22, 34, 52, 0.95), rgba(12, 18, 28, 0.96));
+            box-shadow: var(--shadow);
+        }
+
+        canvas {
+            display: block;
+            width: min(100%, 800px);
+            aspect-ratio: 4 / 3;
+            height: auto;
+            margin: 0 auto;
+            border-radius: 12px;
+            background: #000;
+            image-rendering: auto;
+        }
+
+        .footer {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 14px;
+            }
+
+            .canvas-shell {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="app">
+        <section class="header" aria-label="Project summary">
+            <div>
+                <h1>Moving Squares - JavaScript Port</h1>
+                <p>Vanilla JavaScript and HTML5 Canvas version of the Pygame simulation with the same growth, chase,
+                    flee, wrapping, and trail logic.</p>
+            </div>
+            <div class="status" aria-live="polite">
+                <span class="badge" id="square-count">Squares: 45</span>
+                <span id="frame-info">Delta time: waiting</span>
+            </div>
+        </section>
+
+        <section class="canvas-shell">
+            <canvas id="game-canvas" width="800" height="600" aria-label="Moving squares simulation"></canvas>
+        </section>
+
+        <p class="footer">
+            This port keeps the Python update order intact: age, growth, steering, movement, wrapping, trails, then
+            collision respawn.
+        </p>
+    </main>
+
+    <script>
+        const SCREEN_WIDTH = 800;
+        const SCREEN_HEIGHT = 600;
+        const FPS = 60;
+        const SQUARE_MIX = [
+            [5, 25],
+            [10, 10],
+            [30, 4],
+        ];
+
+        const FLEE_RADIUS = 150.0;
+        const FLEE_STRENGTH = 80.0;
+        const CHASE_RADIUS = 200.0;
+        const CHASE_STRENGTH = 60.0;
+
+        const MIN_SQUARE_SIZE = 4;
+        const MAX_SQUARE_SIZE = 40;
+        const MAX_GROWN_SIZE = 80;
+        const GLOBAL_MAX_SPEED = 120.0;
+        const TRAILS_LENGTH = 30;
+        const TRAIL_COLOR = [130, 130, 130];
+        const GROWTH_SPEED = 0.5;
+
+        const TEST_MODE_ON = false;
+        const TEST_SPEED_TOLERANCE = 0.01;
+
+        const MIN_LIFESPAN = 30.0;
+        const MAX_LIFESPAN = 180.0;
+
+        let nextSquareId = 1;
+
+        class Square {
+            constructor({ x, y, vx, vy, size, targetSize, growthRate, maxSpeed, age, lifespan, trail }) {
+                this.id = nextSquareId++;
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.size = size;
+                this.targetSize = targetSize;
+                this.growthRate = growthRate;
+                this.maxSpeed = maxSpeed;
+                this.age = age;
+                this.lifespan = lifespan;
+                this.trail = trail;
+            }
+        }
+
+        function randFloat(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        function randInt(min, max) {
+            return Math.floor(randFloat(min, max + 1));
+        }
+
+        function choice(values) {
+            return values[Math.floor(Math.random() * values.length)];
+        }
+
+        function distanceBetween(a, b) {
+            return Math.hypot(b.x - a.x, b.y - a.y);
+        }
+
+        function rectanglesCollide(a, b) {
+            return (
+                a.x < b.x + b.size &&
+                a.x + a.size > b.x &&
+                a.y < b.y + b.size &&
+                a.y + a.size > b.y
+            );
+        }
+
+        function computeMaxSpeed(size) {
+            const sizeRange = MAX_GROWN_SIZE - MIN_SQUARE_SIZE;
+            if (sizeRange === 0) {
+                return GLOBAL_MAX_SPEED;
+            }
+
+            const normalized = Math.max(0, Math.min(1, (size - MIN_SQUARE_SIZE) / sizeRange));
+            return GLOBAL_MAX_SPEED * (1 - 0.6 * normalized);
+        }
+
+        function createRandomSquare(size = null) {
+            if (size === null) {
+                size = randInt(MIN_SQUARE_SIZE, MAX_SQUARE_SIZE);
+            }
+
+            const maxSpeed = computeMaxSpeed(size);
+            const x = randInt(0, SCREEN_WIDTH - size);
+            const y = randInt(0, SCREEN_HEIGHT - size);
+            const vx = choice([-1, 1]) * randFloat(40, maxSpeed);
+            const vy = choice([-1, 1]) * randFloat(40, maxSpeed);
+            const lifespan = randFloat(MIN_LIFESPAN, MAX_LIFESPAN);
+
+            return new Square({
+                x: Number(x),
+                y: Number(y),
+                vx: Number(vx),
+                vy: Number(vy),
+                size: Number(size),
+                targetSize: Number(size),
+                growthRate: 0,
+                maxSpeed,
+                age: 0,
+                lifespan,
+                trail: [],
+            });
+        }
+
+        function createSquares() {
+            const squares = [];
+
+            for (const [count, size] of SQUARE_MIX) {
+                for (let index = 0; index < count; index += 1) {
+                    squares.push(createRandomSquare(size));
+                }
+            }
+
+            return squares;
+        }
+
+        function filterNearbySquares(square, squares, radius, sizeCompare) {
+            const nearby = [];
+
+            for (const other of squares) {
+                if (other === square) {
+                    continue;
+                }
+                if (!sizeCompare(other.size, square.size)) {
+                    continue;
+                }
+                if (distanceBetween(square, other) <= radius) {
+                    nearby.push(other);
+                }
+            }
+
+            return nearby;
+        }
+
+        function findBiggerNearbySquares(square, squares, fleeRadius) {
+            return filterNearbySquares(
+                square,
+                squares,
+                fleeRadius,
+                (otherSize, squareSize) => otherSize > squareSize,
+            );
+        }
+
+        function findSmallerNearbySquares(square, squares, chaseRadius) {
+            return filterNearbySquares(
+                square,
+                squares,
+                chaseRadius,
+                (otherSize, squareSize) => otherSize < squareSize,
+            );
+        }
+
+        function clampSpeed(square) {
+            const speed = Math.hypot(square.vx, square.vy);
+            if (speed > square.maxSpeed) {
+                const scale = square.maxSpeed / speed;
+                square.vx *= scale;
+                square.vy *= scale;
+            }
+        }
+
+        function applyFleeBehavior(square, biggerSquares, fleeStrength) {
+            if (biggerSquares.length === 0) {
+                return;
+            }
+
+            let awayX = 0;
+            let awayY = 0;
+
+            for (const other of biggerSquares) {
+                const dx = other.x - square.x;
+                const dy = other.y - square.y;
+                const distance = Math.hypot(dx, dy);
+
+                if (distance === 0) {
+                    continue;
+                }
+
+                awayX -= dx / distance;
+                awayY -= dy / distance;
+            }
+
+            const length = Math.hypot(awayX, awayY);
+            if (length === 0) {
+                return;
+            }
+
+            awayX /= length;
+            awayY /= length;
+
+            square.vx += awayX * fleeStrength;
+            square.vy += awayY * fleeStrength;
+
+            clampSpeed(square);
+        }
+
+        function applyChaseBehavior(square, smallerSquares, chaseStrength) {
+            if (smallerSquares.length === 0) {
+                return;
+            }
+
+            let towardX = 0;
+            let towardY = 0;
+            const squareCenterX = square.x + square.size / 2;
+            const squareCenterY = square.y + square.size / 2;
+
+            for (const other of smallerSquares) {
+                const otherCenterX = other.x + other.size / 2;
+                const otherCenterY = other.y + other.size / 2;
+                const dx = otherCenterX - squareCenterX;
+                const dy = otherCenterY - squareCenterY;
+                const distance = Math.hypot(dx, dy);
+
+                if (distance === 0) {
+                    continue;
+                }
+
+                towardX += dx / distance;
+                towardY += dy / distance;
+            }
+
+            const length = Math.hypot(towardX, towardY);
+            if (length === 0) {
+                return;
+            }
+
+            towardX /= length;
+            towardY /= length;
+
+            square.vx += towardX * chaseStrength;
+            square.vy += towardY * chaseStrength;
+
+            clampSpeed(square);
+        }
+
+        function applyGrowthAnimation(square, deltaTime) {
+            if (square.size >= square.targetSize) {
+                square.size = square.targetSize;
+                square.growthRate = 0;
+                return;
+            }
+
+            square.size = Math.min(square.targetSize, square.size + square.growthRate * deltaTime);
+        }
+
+        function recordTrailPoint(square) {
+            const center = [square.x + square.size / 2, square.y + square.size / 2];
+            square.trail.push(center);
+
+            if (square.trail.length > TRAILS_LENGTH) {
+                square.trail.shift();
+            }
+        }
+
+        function handleEating(squares) {
+            const eatenIds = new Set();
+
+            for (let index = 0; index < squares.length; index += 1) {
+                const square = squares[index];
+
+                for (let otherIndex = index + 1; otherIndex < squares.length; otherIndex += 1) {
+                    const other = squares[otherIndex];
+
+                    if (square.size === other.size) {
+                        continue;
+                    }
+
+                    if (!rectanglesCollide(square, other)) {
+                        continue;
+                    }
+
+                    const smaller = square.size < other.size ? square : other;
+                    const bigger = smaller === square ? other : square;
+                    eatenIds.add(smaller.id);
+
+                    const newTargetSize = Math.min(
+                        MAX_GROWN_SIZE,
+                        bigger.targetSize + Math.max(1, Math.floor(smaller.size) / 2),
+                    );
+
+                    bigger.targetSize = newTargetSize;
+                    bigger.growthRate = (bigger.targetSize - bigger.size) / GROWTH_SPEED;
+                    bigger.maxSpeed = computeMaxSpeed(bigger.targetSize);
+                    clampSpeed(bigger);
+                }
+            }
+
+            return eatenIds;
+        }
+
+        function updateSquares(squares, width, height, deltaTime) {
+            const updatedSquares = [];
+
+            for (const square of squares) {
+                square.age += deltaTime;
+                if (square.age >= square.lifespan) {
+                    updatedSquares.push(createRandomSquare(Math.round(square.size)));
+                    continue;
+                }
+
+                applyGrowthAnimation(square, deltaTime);
+
+                const biggerSquares = findBiggerNearbySquares(square, squares, FLEE_RADIUS);
+                applyFleeBehavior(square, biggerSquares, FLEE_STRENGTH * deltaTime);
+
+                const smallerSquares = findSmallerNearbySquares(square, squares, CHASE_RADIUS);
+                applyChaseBehavior(square, smallerSquares, CHASE_STRENGTH * deltaTime);
+
+                square.x += square.vx * deltaTime;
+                square.y += square.vy * deltaTime;
+
+                let wrapped = false;
+                if (square.x + square.size < 0) {
+                    square.x = width;
+                    wrapped = true;
+                } else if (square.x > width) {
+                    square.x = -square.size;
+                    wrapped = true;
+                }
+
+                if (square.y + square.size < 0) {
+                    square.y = height;
+                    wrapped = true;
+                } else if (square.y > height) {
+                    square.y = -square.size;
+                    wrapped = true;
+                }
+
+                if (wrapped) {
+                    square.trail.length = 0;
+                }
+
+                recordTrailPoint(square);
+                updatedSquares.push(square);
+            }
+
+            const eatenIds = handleEating(updatedSquares);
+            if (eatenIds.size === 0) {
+                return updatedSquares;
+            }
+
+            return updatedSquares.map((square) => (
+                eatenIds.has(square.id) ? createRandomSquare(Math.round(square.size)) : square
+            ));
+        }
+
+        function drawScene(ctx, squares) {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = `rgb(${TRAIL_COLOR[0]}, ${TRAIL_COLOR[1]}, ${TRAIL_COLOR[2]})`;
+            ctx.fillStyle = '#ffffff';
+
+            for (const square of squares) {
+                if (square.trail.length >= 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(square.trail[0][0], square.trail[0][1]);
+
+                    for (let index = 1; index < square.trail.length; index += 1) {
+                        ctx.lineTo(square.trail[index][0], square.trail[index][1]);
+                    }
+
+                    ctx.stroke();
+                }
+            }
+
+            for (const square of squares) {
+                ctx.fillRect(square.x, square.y, square.size, square.size);
+            }
+        }
+
+        function runSpeedTest() {
+            const testSquare = new Square({
+                x: 100,
+                y: 100,
+                vx: 60,
+                vy: 80,
+                size: 10,
+                targetSize: 10,
+                growthRate: 0,
+                maxSpeed: 100,
+                age: 0,
+                lifespan: 999,
+                trail: [],
+            });
+
+            const startX = testSquare.x;
+            const startY = testSquare.y;
+            const expectedSpeed = Math.hypot(testSquare.vx, testSquare.vy);
+            const updated = updateSquares([testSquare], SCREEN_WIDTH, SCREEN_HEIGHT, 1.0);
+            const movedSquare = updated[0];
+            const distanceMoved = Math.hypot(movedSquare.x - startX, movedSquare.y - startY);
+            const passed = Math.abs(distanceMoved - expectedSpeed) <= TEST_SPEED_TOLERANCE;
+
+            console.log(
+                passed
+                    ? 'Speed test passed'
+                    : `Speed test failed: expected ${expectedSpeed}, got ${distanceMoved}`,
+            );
+
+            return passed;
+        }
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const squareCountLabel = document.getElementById('square-count');
+        const frameInfoLabel = document.getElementById('frame-info');
+        let squares = createSquares();
+        let lastTimestamp = null;
+
+        function frame(timestamp) {
+            if (lastTimestamp === null) {
+                lastTimestamp = timestamp;
+            }
+
+            const deltaTime = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+
+            squares = updateSquares(squares, SCREEN_WIDTH, SCREEN_HEIGHT, deltaTime);
+            drawScene(ctx, squares);
+
+            squareCountLabel.textContent = `Squares: ${squares.length}`;
+            frameInfoLabel.textContent = `Delta time: ${deltaTime.toFixed(4)} s`;
+
+            requestAnimationFrame(frame);
+        }
+
+        if (TEST_MODE_ON) {
+            runSpeedTest();
+        }
+
+        requestAnimationFrame(frame);
+        window.runSpeedTest = runSpeedTest;
+    </script>
+</body>
+
+</html>
